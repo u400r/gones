@@ -1,27 +1,35 @@
 package modules
 
-type Stack[T BitSignal, U BitSignal] struct {
+type Stack[T BitSignal, U BitSignal, V BitSignal] struct {
 	stackPointer Counter[U]
-	memory       Writable[T, U]
+	memory       Writable[T, V]
 }
 
-func NewStack[T BitSignal, U BitSignal](ram Writable[T, U], addr U) *Stack[T, U] {
-	return &Stack[T, U]{
+func NewStack[T BitSignal, U BitSignal, V BitSignal](ram Writable[T, V], addr U) *Stack[T, U, V] {
+	return &Stack[T, U, V]{
 		stackPointer: NewRegister(addr),
 		memory:       ram,
 	}
 }
 
-func (s *Stack[T, U]) Pop() T {
+func (s *Stack[T, U, V]) Pop() T {
 	s.stackPointer.Decrement()
 	addr := s.stackPointer.Read()
-	data := s.memory.Read(addr)
+	data := s.memory.Read(V(addr))
 	return data
 }
 
-func (s *Stack[T, U]) Push(data T) {
+func (s *Stack[T, U, V]) Push(data T) {
 	addr := s.stackPointer.Read()
-	s.memory.Write(addr, data)
+	s.memory.Write(V(addr), data)
 	s.stackPointer.Increment()
 
+}
+
+func (s *Stack[T, U, V]) GetStackPointer() U {
+	return s.stackPointer.Read()
+}
+
+func (s *Stack[T, U, V]) SetStackPointer(addr U) {
+	s.stackPointer.Write(addr)
 }
