@@ -1,11 +1,11 @@
 package modules
 
 type Readable[T BitSignal, U BitSignal] interface {
-	read(addr U) T
+	Read(addr U) T
 }
 
 type Writable[T BitSignal, U BitSignal] interface {
-	write(addr U, data T)
+	Write(addr U, data T)
 	Readable[T, U]
 }
 
@@ -21,10 +21,10 @@ func NewMemory[T BitSignal, U BitSignal](size U) *Memory[T, U] {
 	}
 }
 
-func (m *Memory[T, U]) read(addr U) T {
+func (m *Memory[T, U]) Read(addr U) T {
 	return m.data[addr]
 }
 
-func (m *Memory[T, U]) write(addr U, data T) {
+func (m *Memory[T, U]) Write(addr U, data T) {
 	m.data[addr] = data
 }

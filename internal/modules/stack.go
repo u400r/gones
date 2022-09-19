@@ -15,13 +15,13 @@ func NewStack[T BitSignal, U BitSignal](ram Writable[T, U], addr U) *Stack[T, U]
 func (s *Stack[T, U]) Pop() T {
 	s.stackPointer.Decrement()
 	addr := s.stackPointer.Read()
-	data := s.memory.read(addr)
+	data := s.memory.Read(addr)
 	return data
 }
 
 func (s *Stack[T, U]) Push(data T) {
 	addr := s.stackPointer.Read()
-	s.memory.write(addr, data)
+	s.memory.Write(addr, data)
 	s.stackPointer.Increment()
 
 }
