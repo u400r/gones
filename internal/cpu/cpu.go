@@ -16,7 +16,7 @@ type Cpu struct {
 	status         modules.Flag[uint8]
 }
 
-func NewCpu(memory *modules.Memory[uint8, uint16]) *Cpu {
+func NewCpu(memory modules.Writable[uint8, uint16]) *Cpu {
 	return &Cpu{
 		a:              modules.NewRegister(uint8(0)),
 		b:              modules.NewRegister(uint8(0)),
