@@ -21,6 +21,15 @@ func NewMemory[T BitSignal, U BitSignal](size U) *Memory[T, U] {
 	}
 }
 
+func NewMemoryWith[T BitSignal, U BitSignal](data []T) *Memory[T, U] {
+	size := U(len(data))
+	return &Memory[T, U]{
+		data: data,
+		size: size,
+	}
+
+}
+
 func (m *Memory[T, U]) Read(addr U) T {
 	return m.data[addr]
 }
