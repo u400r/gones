@@ -55,11 +55,11 @@ func (c *Cpu) IsWaitOneClock() bool {
 	return true
 }
 
-func (c *Cpu) fetch() uint16 {
-	return c.programCounter.Read()
+func (c *Cpu) fetch() uint8 {
+	return c.ram.Read(c.programCounter.Read())
 }
 
-func (c *Cpu) decode(opecode uint16) (Operation, AddressingMode) {
+func (c *Cpu) decode(opecode uint8) (Operation, AddressingMode) {
 	decoded := OpecodeMapping[opecode]
 	return decoded.Operation, decoded.AddressingMode
 }
