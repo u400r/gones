@@ -1,5 +1,48 @@
 package cpu
 
+var (
+	Immediate, Abusolute, AbusoluteX, AbusoluteY *Mode
+	ZeroPage, ZeroPageX, ZeroPageY, Relative     *Mode
+	Indirect, IndirectX, IndirectY, Implicit     *Mode
+)
+
+func init() {
+	Immediate = &Mode{mode: "Immediate", getAddress: ImmediateMode}
+	Abusolute = &Mode{mode: "Abusolute", getAddress: AbusoluteMode}
+	AbusoluteX = &Mode{mode: "AbusoluteX", getAddress: AbusoluteXMode}
+	AbusoluteY = &Mode{mode: "AbusoluteY", getAddress: AbusoluteYMode}
+	ZeroPage = &Mode{mode: "ZeroPage", getAddress: ZeroPageMode}
+	ZeroPageX = &Mode{mode: "ZeroPageX", getAddress: ZeroPageXMode}
+	ZeroPageY = &Mode{mode: "ZeroPageY", getAddress: ZeroPageYMode}
+	Relative = &Mode{mode: "Relative", getAddress: RelativeMode}
+	Indirect = &Mode{mode: "Indirect", getAddress: IndirectMode}
+	IndirectX = &Mode{mode: "IndirectX", getAddress: IndirectXMode}
+	IndirectY = &Mode{mode: "IndirectY", getAddress: IndirectYMode}
+	Implicit = &Mode{mode: "Implicit", getAddress: ImplicitMode}
+}
+
+type Addressing interface {
+	GetAddress(c *Cpu) *uint16
+	GetModeString() string
+	GetAddressString(c *Cpu) string
+}
+
+type Mode struct {
+	mode       string
+	getAddress func(c *Cpu) *uint16
+}
+
+func (m *Mode) GetAddress(c *Cpu) *uint16 {
+	return m.getAddress(c)
+}
+
+func (m *Mode) GetModeString() string {
+	return m.mode
+}
+
+func (m *Mode) GetAddressString(c *Cpu) string {
+	return ""
+}
 func ImmediateMode(c *Cpu) *uint16 {
 	if false {
 		c.clock.Tick()

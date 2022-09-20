@@ -1,6 +1,8 @@
 package cpu
 
 import (
+	"fmt"
+
 	"github.com/u400r/gones/internal/modules"
 )
 
@@ -17,7 +19,7 @@ type Cpu struct {
 }
 
 func NewCpu(memory modules.Writable[uint8, uint16]) *Cpu {
-	return &Cpu{
+	c := &Cpu{
 		a:              modules.NewRegister(uint8(0)),
 		b:              modules.NewRegister(uint8(0)),
 		x:              modules.NewRegister(uint8(0)),
@@ -28,6 +30,8 @@ func NewCpu(memory modules.Writable[uint8, uint16]) *Cpu {
 		ram:            memory,
 		clock:          &clock{},
 	}
+	c.initDecoder()
+	return c
 }
 
 type Clock interface {
@@ -40,15 +44,20 @@ func (c *clock) Tick() {
 
 }
 
-type Operation func(c *Cpu, addr *uint16)
 type AddressingMode func(c *Cpu) *uint16
 
 func (c *Cpu) Process() {
 	opcode := c.fetch()
-	operation, mode := c.decode(opcode)
-	addr := mode(c)
-	operation(c, addr)
+	op, mode := c.decode(opcode)
+	if op == nil || mode == nil {
+		panic("something went wrong")
+	}
+	fmt.Printf("%v %v\n", op.Opecode(), mode.GetModeString())
+
+	addr := mode.GetAddress(c)
+	op.Do(c, addr)
 	c.programCounter.Increment()
+
 }
 
 func (c *Cpu) IsWaitOneClock() bool {
@@ -57,9 +66,4 @@ func (c *Cpu) IsWaitOneClock() bool {
 
 func (c *Cpu) fetch() uint8 {
 	return c.ram.Read(c.programCounter.Read())
-}
-
-func (c *Cpu) decode(opecode uint8) (Operation, AddressingMode) {
-	decoded := OpecodeMapping[opecode]
-	return decoded.Operation, decoded.AddressingMode
 }

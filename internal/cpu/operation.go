@@ -2,7 +2,116 @@ package cpu
 
 import "github.com/u400r/gones/internal/modules"
 
-func OperationAdc(c *Cpu, addr *uint16) {
+var (
+	// logical and alithmetic
+	Ora, And, Eor, Adc, Sbc, Cmp, Cpx, Cpy, Dec, Dex, Dey, Inc, Inx, Iny, Asl, Rol, Lsr, Ror *Operation
+	// move
+	Lda, Sta, Ldx, Stx, Ldy, Sty, Tax, Txa, Tay, Tya, Tsx, Txs, Pla, Pha, Plp, Php *Operation
+	// jump
+	Bpl, Bmi, Bvc, Bvs, Bcc, Bcs, Bne, Beq, Brk, Rti, Jsr, Rts, Jmp, Bit, Clc, Sec, Cld, Sed, Cli, Sei, Clv, Nop *Operation
+	// illegal
+	Slo, Rla, Sre, Rra, Sax, Lax, Dcp, Isc, Anc, Alr, Arr, Xaa, Axs, Ahx, Shy, Shx, Tas, Las *Operation
+)
+
+func init() {
+	Ora = &Operation{do: doOra, opecode: "Ora"}
+	And = &Operation{do: doAnd, opecode: "And"}
+	Eor = &Operation{do: doEor, opecode: "Eor"}
+	Adc = &Operation{do: doAdc, opecode: "Adc"}
+	Sbc = &Operation{do: doSbc, opecode: "Sbc"}
+	Cmp = &Operation{do: doCmp, opecode: "Cmp"}
+	Cpx = &Operation{do: doCpx, opecode: "Cpx"}
+	Cpy = &Operation{do: doCpy, opecode: "Cpy"}
+	Dec = &Operation{do: doDec, opecode: "Dec"}
+	Dex = &Operation{do: doDex, opecode: "Dex"}
+	Dey = &Operation{do: doDey, opecode: "Dey"}
+	Inc = &Operation{do: doInc, opecode: "Inc"}
+	Inx = &Operation{do: doInx, opecode: "Inx"}
+	Iny = &Operation{do: doIny, opecode: "Iny"}
+	Asl = &Operation{do: doAsl, opecode: "Asl"}
+	Rol = &Operation{do: doRol, opecode: "Rol"}
+	Lsr = &Operation{do: doLsr, opecode: "Lsr"}
+	Ror = &Operation{do: doRor, opecode: "Ror"}
+	// move
+	Lda = &Operation{do: doLda, opecode: "Lda"}
+	Sta = &Operation{do: doSta, opecode: "Sta"}
+	Ldx = &Operation{do: doLdx, opecode: "Ldx"}
+	Stx = &Operation{do: doStx, opecode: "Stx"}
+	Ldy = &Operation{do: doLdy, opecode: "Ldy"}
+	Sty = &Operation{do: doSty, opecode: "Sty"}
+	Tax = &Operation{do: doTax, opecode: "Tax"}
+	Txa = &Operation{do: doTxa, opecode: "Txa"}
+	Tay = &Operation{do: doTay, opecode: "Tay"}
+	Tya = &Operation{do: doTya, opecode: "Tya"}
+	Tsx = &Operation{do: doTsx, opecode: "Tsx"}
+	Txs = &Operation{do: doTxs, opecode: "Txs"}
+	Pla = &Operation{do: doPla, opecode: "Pla"}
+	Pha = &Operation{do: doPha, opecode: "Pha"}
+	Plp = &Operation{do: doPlp, opecode: "Plp"}
+	Php = &Operation{do: doPhp, opecode: "Php"}
+	// jump
+	Bpl = &Operation{do: doBpl, opecode: "Bpl"}
+	Bmi = &Operation{do: doBmi, opecode: "Bmi"}
+	Bvc = &Operation{do: doBvc, opecode: "Bvc"}
+	Bvs = &Operation{do: doBvs, opecode: "Bvs"}
+	Bcc = &Operation{do: doBcc, opecode: "Bcc"}
+	Bcs = &Operation{do: doBcs, opecode: "Bcs"}
+	Bne = &Operation{do: doBne, opecode: "Bne"}
+	Beq = &Operation{do: doBeq, opecode: "Beq"}
+	Brk = &Operation{do: doBrk, opecode: "Brk"}
+	Rti = &Operation{do: doRti, opecode: "Rti"}
+	Jsr = &Operation{do: doJsr, opecode: "Jsr"}
+	Rts = &Operation{do: doRts, opecode: "Rts"}
+	Jmp = &Operation{do: doJmp, opecode: "Jmp"}
+	Bit = &Operation{do: doBit, opecode: "Bit"}
+	Clc = &Operation{do: doClc, opecode: "Clc"}
+	Sec = &Operation{do: doSec, opecode: "Sec"}
+	Cld = &Operation{do: doCld, opecode: "Cld"}
+	Sed = &Operation{do: doSed, opecode: "Sed"}
+	Cli = &Operation{do: doCli, opecode: "Cli"}
+	Sei = &Operation{do: doSei, opecode: "Sei"}
+	Clv = &Operation{do: doClv, opecode: "Clv"}
+	Nop = &Operation{do: doNop, opecode: "Nop"}
+	// illegal
+	Slo = &Operation{do: doSlo, opecode: "Slo"}
+	Rla = &Operation{do: doRla, opecode: "Rla"}
+	Sre = &Operation{do: doSre, opecode: "Sre"}
+	Rra = &Operation{do: doRra, opecode: "Rra"}
+	Sax = &Operation{do: doSax, opecode: "Sax"}
+	Lax = &Operation{do: doLax, opecode: "Lax"}
+	Dcp = &Operation{do: doDcp, opecode: "Dcp"}
+	Isc = &Operation{do: doIsc, opecode: "Isc"}
+	Anc = &Operation{do: doAnc, opecode: "Anc"}
+	Alr = &Operation{do: doAlr, opecode: "Alr"}
+	Arr = &Operation{do: doArr, opecode: "Arr"}
+	Xaa = &Operation{do: doXaa, opecode: "Xaa"}
+	Axs = &Operation{do: doAxs, opecode: "Axs"}
+	Ahx = &Operation{do: doAhx, opecode: "Ahx"}
+	Shy = &Operation{do: doShy, opecode: "Shy"}
+	Shx = &Operation{do: doShx, opecode: "Shx"}
+	Tas = &Operation{do: doTas, opecode: "Tas"}
+	Las = &Operation{do: doLas, opecode: "Las"}
+
+}
+
+type Operation struct {
+	do      func(c *Cpu, addr *uint16)
+	opecode string
+}
+
+type Operatable interface {
+	Do(c *Cpu, addr *uint16)
+	Opecode() string
+}
+
+func (o *Operation) Do(c *Cpu, addr *uint16) {
+	o.do(c, addr)
+}
+
+func (o *Operation) Opecode() string {
+	return o.opecode
+}
+func doAdc(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	a := c.a.Read()
 	memory := c.ram.Read(*addr)
@@ -17,7 +126,7 @@ func OperationAdc(c *Cpu, addr *uint16) {
 	c.status.Change(modules.CARRY, carryOut)
 }
 
-func OperationSbc(c *Cpu, addr *uint16) {
+func doSbc(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	a := c.a.Read()
 	memory := c.ram.Read(*addr)
@@ -33,7 +142,7 @@ func OperationSbc(c *Cpu, addr *uint16) {
 	c.status.Change(modules.CARRY, carryOut)
 }
 
-func OperationAnd(c *Cpu, addr *uint16) {
+func doAnd(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	a := c.a.Read()
@@ -47,7 +156,7 @@ func OperationAnd(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, result == 0)
 }
 
-func OperationOra(c *Cpu, addr *uint16) {
+func doOra(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	a := c.a.Read()
@@ -61,7 +170,7 @@ func OperationOra(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, result == 0)
 }
 
-func OperationEor(c *Cpu, addr *uint16) {
+func doEor(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	a := c.a.Read()
@@ -75,7 +184,7 @@ func OperationEor(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, result == 0)
 }
 
-func OperationAsl(c *Cpu, addr *uint16) {
+func doAsl(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	var data uint8
 	if addr != nil {
@@ -99,7 +208,7 @@ func OperationAsl(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationLsr(c *Cpu, addr *uint16) {
+func doLsr(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	var data uint8
 	if addr != nil {
@@ -122,7 +231,7 @@ func OperationLsr(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationRol(c *Cpu, addr *uint16) {
+func doRol(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	var data uint8
@@ -155,7 +264,7 @@ func OperationRol(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationRor(c *Cpu, addr *uint16) {
+func doRor(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	var data uint8
@@ -189,7 +298,7 @@ func OperationRor(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationBcc(c *Cpu, addr *uint16) {
+func doBcc(c *Cpu, addr *uint16) {
 	carryIn := c.status.Get(modules.CARRY)
 
 	if !carryIn {
@@ -213,7 +322,7 @@ func OperationBcc(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationBcs(c *Cpu, addr *uint16) {
+func doBcs(c *Cpu, addr *uint16) {
 	carryIn := c.status.Get(modules.CARRY)
 
 	if carryIn {
@@ -236,7 +345,7 @@ func OperationBcs(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationBeq(c *Cpu, addr *uint16) {
+func doBeq(c *Cpu, addr *uint16) {
 
 	zeroIn := c.status.Get(modules.ZERO)
 
@@ -259,7 +368,7 @@ func OperationBeq(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationBne(c *Cpu, addr *uint16) {
+func doBne(c *Cpu, addr *uint16) {
 
 	zeroIn := c.status.Get(modules.ZERO)
 
@@ -282,7 +391,7 @@ func OperationBne(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationBvc(c *Cpu, addr *uint16) {
+func doBvc(c *Cpu, addr *uint16) {
 
 	overflowIn := c.status.Get(modules.OVERFLOW)
 
@@ -305,7 +414,7 @@ func OperationBvc(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationBvs(c *Cpu, addr *uint16) {
+func doBvs(c *Cpu, addr *uint16) {
 
 	overflowIn := c.status.Get(modules.OVERFLOW)
 
@@ -328,7 +437,7 @@ func OperationBvs(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationBpl(c *Cpu, addr *uint16) {
+func doBpl(c *Cpu, addr *uint16) {
 
 	negativeIn := c.status.Get(modules.NEGATIVE)
 
@@ -351,7 +460,7 @@ func OperationBpl(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationBmi(c *Cpu, addr *uint16) {
+func doBmi(c *Cpu, addr *uint16) {
 
 	negativeIn := c.status.Get(modules.NEGATIVE)
 
@@ -374,7 +483,7 @@ func OperationBmi(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationBit(c *Cpu, addr *uint16) {
+func doBit(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	a := c.a.Read()
@@ -390,7 +499,7 @@ func OperationBit(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, result == 0)
 }
 
-func OperationJmp(c *Cpu, addr *uint16) {
+func doJmp(c *Cpu, addr *uint16) {
 	if false {
 		// call yield due to be generator
 		c.clock.Tick()
@@ -398,7 +507,7 @@ func OperationJmp(c *Cpu, addr *uint16) {
 	c.programCounter.Write(*addr - 1)
 }
 
-func OperationJsr(c *Cpu, addr *uint16) {
+func doJsr(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	data := c.programCounter.Read()
 	low := uint8(data & 255)
@@ -411,7 +520,7 @@ func OperationJsr(c *Cpu, addr *uint16) {
 	c.programCounter.Write(target)
 }
 
-func OperationRts(c *Cpu, addr *uint16) {
+func doRts(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	c.programCounter.Increment()
 	c.clock.Tick()
@@ -424,7 +533,7 @@ func OperationRts(c *Cpu, addr *uint16) {
 	c.programCounter.Write(return_addr)
 }
 
-func OperationBrk(c *Cpu, addr *uint16) {
+func doBrk(c *Cpu, addr *uint16) {
 	// TODO
 	// it is wrong to check i flag here
 	c.clock.Tick()
@@ -458,7 +567,7 @@ func OperationBrk(c *Cpu, addr *uint16) {
 	}
 }
 
-func OperationRti(c *Cpu, addr *uint16) {
+func doRti(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	c.programCounter.Increment()
 	c.clock.Tick()
@@ -474,7 +583,7 @@ func OperationRti(c *Cpu, addr *uint16) {
 	c.programCounter.Write(return_addr - 1)
 }
 
-func OperationCmp(c *Cpu, addr *uint16) {
+func doCmp(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	a := c.a.Read()
@@ -488,7 +597,7 @@ func OperationCmp(c *Cpu, addr *uint16) {
 	c.status.Change(modules.CARRY, result >= 0)
 }
 
-func OperationCpx(c *Cpu, addr *uint16) {
+func doCpx(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	x := c.x.Read()
@@ -503,7 +612,7 @@ func OperationCpx(c *Cpu, addr *uint16) {
 	c.status.Change(modules.CARRY, result >= 0)
 }
 
-func OperationCpy(c *Cpu, addr *uint16) {
+func doCpy(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	y := c.y.Read()
@@ -518,7 +627,7 @@ func OperationCpy(c *Cpu, addr *uint16) {
 	c.status.Change(modules.CARRY, result >= 0)
 }
 
-func OperationInc(c *Cpu, addr *uint16) {
+func doInc(c *Cpu, addr *uint16) {
 
 	c.clock.Tick()
 
@@ -534,7 +643,7 @@ func OperationInc(c *Cpu, addr *uint16) {
 	c.ram.Write(*addr, result)
 }
 
-func OperationDec(c *Cpu, addr *uint16) {
+func doDec(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	memory := c.ram.Read(*addr)
@@ -550,7 +659,7 @@ func OperationDec(c *Cpu, addr *uint16) {
 	c.ram.Write(*addr, result)
 }
 
-func OperationInx(c *Cpu, addr *uint16) {
+func doInx(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	x := c.x.Read()
@@ -562,7 +671,7 @@ func OperationInx(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, result == 0)
 }
 
-func OperationDex(c *Cpu, addr *uint16) {
+func doDex(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	x := c.x.Read()
@@ -574,7 +683,7 @@ func OperationDex(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, result == 0)
 }
 
-func OperationIny(c *Cpu, addr *uint16) {
+func doIny(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	y := c.y.Read()
 	result := (y + 1) & 255
@@ -584,7 +693,7 @@ func OperationIny(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, result == 0)
 }
 
-func OperationDey(c *Cpu, addr *uint16) {
+func doDey(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	y := c.y.Read()
@@ -596,49 +705,49 @@ func OperationDey(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, result == 0)
 }
 
-func OperationClc(c *Cpu, addr *uint16) {
+func doClc(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	c.status.Clear(modules.CARRY)
 }
 
-func OperationSec(c *Cpu, addr *uint16) {
+func doSec(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	c.status.Set(modules.CARRY)
 }
 
-func OperationCli(c *Cpu, addr *uint16) {
+func doCli(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	c.status.Clear(modules.INTERRUPT)
 }
 
-func OperationSei(c *Cpu, addr *uint16) {
+func doSei(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	c.status.Set(modules.INTERRUPT)
 }
 
-func OperationCld(c *Cpu, addr *uint16) {
+func doCld(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	c.status.Clear(modules.DECIMAL)
 }
 
-func OperationSed(c *Cpu, addr *uint16) {
+func doSed(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	c.status.Set(modules.DECIMAL)
 }
 
-func OperationClv(c *Cpu, addr *uint16) {
+func doClv(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	c.status.Clear(modules.OVERFLOW)
 }
 
-func OperationLda(c *Cpu, addr *uint16) {
+func doLda(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	memory := c.ram.Read(*addr)
@@ -651,7 +760,7 @@ func OperationLda(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, memory == 0)
 }
 
-func OperationLdx(c *Cpu, addr *uint16) {
+func doLdx(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	memory := c.ram.Read(*addr)
@@ -665,7 +774,7 @@ func OperationLdx(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, memory == 0)
 }
 
-func OperationLdy(c *Cpu, addr *uint16) {
+func doLdy(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	memory := c.ram.Read(*addr)
@@ -679,7 +788,7 @@ func OperationLdy(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, memory == 0)
 }
 
-func OperationSta(c *Cpu, addr *uint16) {
+func doSta(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	a := c.a.Read()
@@ -687,21 +796,21 @@ func OperationSta(c *Cpu, addr *uint16) {
 	c.ram.Write(*addr, a)
 }
 
-func OperationStx(c *Cpu, addr *uint16) {
+func doStx(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	x := c.x.Read()
 
 	c.ram.Write(*addr, x)
 }
 
-func OperationSty(c *Cpu, addr *uint16) {
+func doSty(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	y := c.y.Read()
 
 	c.ram.Write(*addr, y)
 }
 
-func OperationTax(c *Cpu, addr *uint16) {
+func doTax(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	a := c.a.Read()
 	c.x.Write(a)
@@ -713,7 +822,7 @@ func OperationTax(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, a == 0)
 }
 
-func OperationTxa(c *Cpu, addr *uint16) {
+func doTxa(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	x := c.x.Read()
 	c.a.Write(x)
@@ -725,7 +834,7 @@ func OperationTxa(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, x == 0)
 }
 
-func OperationTay(c *Cpu, addr *uint16) {
+func doTay(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	a := c.a.Read()
@@ -738,7 +847,7 @@ func OperationTay(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, a == 0)
 }
 
-func OperationTya(c *Cpu, addr *uint16) {
+func doTya(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	y := c.y.Read()
 	c.a.Write(y)
@@ -750,7 +859,7 @@ func OperationTya(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, y == 0)
 }
 
-func OperationTsx(c *Cpu, addr *uint16) {
+func doTsx(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	stackPointer := c.stack.GetStackPointer()
@@ -763,20 +872,20 @@ func OperationTsx(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, stackPointer == 0)
 }
 
-func OperationTxs(c *Cpu, addr *uint16) {
+func doTxs(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	x := c.x.Read()
 	c.stack.SetStackPointer(x)
 }
 
-func OperationPha(c *Cpu, addr *uint16) {
+func doPha(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	c.clock.Tick()
 
 	c.stack.Push(c.a.Read())
 }
 
-func OperationPla(c *Cpu, addr *uint16) {
+func doPla(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	c.clock.Tick()
 
@@ -788,14 +897,14 @@ func OperationPla(c *Cpu, addr *uint16) {
 	c.status.Change(modules.ZERO, data == 0)
 }
 
-func OperationPhp(c *Cpu, addr *uint16) {
+func doPhp(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	c.clock.Tick()
 
 	c.stack.Push(c.status.Read())
 }
 
-func OperationPlp(c *Cpu, addr *uint16) {
+func doPlp(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	c.clock.Tick()
 
@@ -804,33 +913,33 @@ func OperationPlp(c *Cpu, addr *uint16) {
 	c.status.Write(data)
 }
 
-func OperationNop(c *Cpu, addr *uint16) {
+func doNop(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 }
 
 // below is illegal opcode func definition
 // combination of two operations with the same addring mode
-func OperationSlo(c *Cpu, addr *uint16) {
-	OperationAsl(c, addr)
-	OperationOra(c, addr)
+func doSlo(c *Cpu, addr *uint16) {
+	doAsl(c, addr)
+	doOra(c, addr)
 }
 
-func OperationRla(c *Cpu, addr *uint16) {
-	OperationRol(c, addr)
-	OperationAnd(c, addr)
+func doRla(c *Cpu, addr *uint16) {
+	doRol(c, addr)
+	doAnd(c, addr)
 }
 
-func OperationSre(c *Cpu, addr *uint16) {
-	OperationLsr(c, addr)
-	OperationEor(c, addr)
+func doSre(c *Cpu, addr *uint16) {
+	doLsr(c, addr)
+	doEor(c, addr)
 }
 
-func OperationRra(c *Cpu, addr *uint16) {
-	OperationRor(c, addr)
-	OperationAdc(c, addr)
+func doRra(c *Cpu, addr *uint16) {
+	doRor(c, addr)
+	doAdc(c, addr)
 }
 
-func OperationSax(c *Cpu, addr *uint16) {
+func doSax(c *Cpu, addr *uint16) {
 
 	a := c.a.Read()
 	x := c.x.Read()
@@ -840,24 +949,24 @@ func OperationSax(c *Cpu, addr *uint16) {
 	c.ram.Write(*addr, result)
 }
 
-func OperationLax(c *Cpu, addr *uint16) {
-	OperationLda(c, addr)
-	OperationLdx(c, addr)
+func doLax(c *Cpu, addr *uint16) {
+	doLda(c, addr)
+	doLdx(c, addr)
 }
 
-func OperationDcp(c *Cpu, addr *uint16) {
-	OperationDec(c, addr)
-	OperationCmp(c, addr)
+func doDcp(c *Cpu, addr *uint16) {
+	doDec(c, addr)
+	doCmp(c, addr)
 }
 
-func OperationIsc(c *Cpu, addr *uint16) {
-	OperationInc(c, addr)
-	OperationSbc(c, addr)
+func doIsc(c *Cpu, addr *uint16) {
+	doInc(c, addr)
+	doSbc(c, addr)
 }
 
 // combinations of an immediate and an implied command
-func OperationAnc(c *Cpu, addr *uint16) {
-	OperationAnd(c, addr)
+func doAnc(c *Cpu, addr *uint16) {
+	doAnd(c, addr)
 
 	a := c.a.Read()
 	carryOut := (a >> 7) == 1
@@ -865,41 +974,41 @@ func OperationAnc(c *Cpu, addr *uint16) {
 	c.status.Change(modules.CARRY, carryOut)
 }
 
-func OperationAlr(c *Cpu, addr *uint16) {
-	OperationAnd(c, addr)
-	OperationLsr(c, nil)
+func doAlr(c *Cpu, addr *uint16) {
+	doAnd(c, addr)
+	doLsr(c, nil)
 }
 
-func OperationArr(c *Cpu, addr *uint16) {
-	OperationAnd(c, addr)
-	OperationRor(c, nil)
+func doArr(c *Cpu, addr *uint16) {
+	doAnd(c, addr)
+	doRor(c, nil)
 }
 
-func OperationXaa(c *Cpu, addr *uint16) {
-	OperationTxa(c, nil)
-	OperationAnd(c, addr)
+func doXaa(c *Cpu, addr *uint16) {
+	doTxa(c, nil)
+	doAnd(c, addr)
 }
 
-func OperationLaxi(c *Cpu, addr *uint16) {
-	OperationLda(c, addr)
-	OperationTax(c, nil)
+func doLaxi(c *Cpu, addr *uint16) {
+	doLda(c, addr)
+	doTax(c, nil)
 }
 
-func OperationAxs(c *Cpu, addr *uint16) {
+func doAxs(c *Cpu, addr *uint16) {
 	// nop
 }
 
-func OperationSbcn(c *Cpu, addr *uint16) {
-	OperationSbc(c, addr)
-	OperationNop(c, nil)
+func doSbcn(c *Cpu, addr *uint16) {
+	doSbc(c, addr)
+	doNop(c, nil)
 }
 
-func OperationAhx(c *Cpu, addr *uint16) {}
+func doAhx(c *Cpu, addr *uint16) {}
 
-func OperationShx(c *Cpu, addr *uint16) {}
+func doShx(c *Cpu, addr *uint16) {}
 
-func OperationShy(c *Cpu, addr *uint16) {}
+func doShy(c *Cpu, addr *uint16) {}
 
-func OperationTas(c *Cpu, addr *uint16) {}
+func doTas(c *Cpu, addr *uint16) {}
 
-func OperationLas(c *Cpu, addr *uint16) {}
+func doLas(c *Cpu, addr *uint16) {}
