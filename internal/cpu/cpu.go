@@ -23,13 +23,21 @@ func NewCpu(memory *modules.Memory[uint8, uint16]) *Cpu {
 		x:              modules.NewRegister(uint8(0)),
 		y:              modules.NewRegister(uint8(0)),
 		programCounter: modules.NewRegister(uint16(0)),
-		stack:          modules.NewStack[uint8, uint8, uint16](memory, uint8(0)),
+		status:         modules.NewRegister(uint8(0)),
+		stack:          modules.NewStack(memory, uint8(0)),
 		ram:            memory,
+		clock:          &clock{},
 	}
 }
 
 type Clock interface {
 	Tick()
+}
+type clock struct {
+}
+
+func (c *clock) Tick() {
+
 }
 
 type Operation func(c *Cpu, addr *uint16)
