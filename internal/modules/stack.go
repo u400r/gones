@@ -13,16 +13,18 @@ func NewStack[T ByteSignal, U ByteSignal, V ByteSignal](ram Writable[T, V], addr
 }
 
 func (s *Stack[T, U, V]) Pop() T {
-	s.stackPointer.Decrement()
+	s.stackPointer.Increment()
 	addr := s.stackPointer.Read()
-	data := s.memory.Read(V(addr))
+	offset := uint64(256)
+	data := s.memory.Read(V(addr) + V(offset))
 	return data
 }
 
 func (s *Stack[T, U, V]) Push(data T) {
 	addr := s.stackPointer.Read()
-	s.memory.Write(V(addr), data)
-	s.stackPointer.Increment()
+	offset := uint64(256)
+	s.memory.Write(V(addr)+V(offset), data)
+	s.stackPointer.Decrement()
 
 }
 
