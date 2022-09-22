@@ -21,8 +21,9 @@ func SignedAdd[T SignedByteSignal](a T, b T, c bool) (T, bool) {
 	}
 
 	result := a + b + carryIn
+	result64 := int64(a) + int64(b) + int64(carryIn)
 	overflow := false
-	if (a > 0 && b > 0 && result < 0) || (a < 0 && b < 0 && result > 0) {
+	if int64(result) != result64 {
 		overflow = true
 	}
 	return result, overflow
@@ -36,7 +37,7 @@ func UnsignedSub[T ByteSignal](a T, b T, c bool) (T, bool) {
 		carryIn = T(1)
 	}
 	result := a - b - carryIn
-	carryOut := result >= a
+	carryOut := result <= a
 	return result, carryOut
 }
 
@@ -49,8 +50,9 @@ func SignedSub[T SignedByteSignal](a T, b T, c bool) (T, bool) {
 	}
 
 	result := a - b - carryIn
+	result64 := int64(a) - int64(b) - int64(carryIn)
 	overflow := false
-	if (a > 0 && b > 0 && result < 0) || (a < 0 && b < 0 && result > 0) {
+	if int64(result) != result64 {
 		overflow = true
 	}
 	return result, overflow

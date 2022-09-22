@@ -194,8 +194,8 @@ func doAsl(c *Cpu, addr *uint16) {
 		data = c.aRegister.Read()
 	}
 
-	result := (data << 1) & 255
-	carryOut := (data >> 7) == 1
+	result := data << 1 & 255
+	carryOut := data>>7 == 1
 
 	c.statusRegister.Change(modules.NEGATIVE, result > 127)
 	c.statusRegister.Change(modules.ZERO, result == 0)
@@ -218,7 +218,7 @@ func doLsr(c *Cpu, addr *uint16) {
 		data = c.aRegister.Read()
 	}
 	result := data >> 1
-	carryOut := data == 1
+	carryOut := data&1 == 1
 
 	c.statusRegister.Change(modules.NEGATIVE, result > 127)
 	c.statusRegister.Change(modules.ZERO, result == 0)
@@ -248,9 +248,9 @@ func doRol(c *Cpu, addr *uint16) {
 	} else {
 		carryIn = 0
 	}
-	result := (data << 1) & 255
+	result := data << 1 & 255
 	result = result | carryIn
-	carryOut := (data >> 7) == 1
+	carryOut := data>>7 == 1
 
 	c.statusRegister.Change(modules.NEGATIVE, result > 127)
 	c.statusRegister.Change(modules.ZERO, result == 0)
@@ -284,7 +284,7 @@ func doRor(c *Cpu, addr *uint16) {
 	}
 	result := data >> 1
 	result = result | (carryIn << 7)
-	carryOut := data == 1
+	carryOut := data&1 == 1
 
 	c.statusRegister.Change(modules.NEGATIVE, result > 127)
 	c.statusRegister.Change(modules.ZERO, result == 0)
@@ -492,7 +492,7 @@ func doBit(c *Cpu, addr *uint16) {
 
 	result := a & memory
 
-	overflow := memory>>6 == 1
+	overflow := memory>>6&1 == 1
 	negative := memory>>7 == 1
 	c.statusRegister.Change(modules.OVERFLOW, overflow)
 	c.statusRegister.Change(modules.NEGATIVE, negative)
@@ -594,7 +594,7 @@ func doCmp(c *Cpu, addr *uint16) {
 	negative := result>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, result == 0)
-	c.statusRegister.Change(modules.CARRY, result >= 0)
+	c.statusRegister.Change(modules.CARRY, a >= memory)
 }
 
 func doCpx(c *Cpu, addr *uint16) {
@@ -605,11 +605,10 @@ func doCpx(c *Cpu, addr *uint16) {
 	memory := c.ram.Read(*addr)
 
 	result := x - memory
-
 	negative := result>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, result == 0)
-	c.statusRegister.Change(modules.CARRY, result >= 0)
+	c.statusRegister.Change(modules.CARRY, x >= memory)
 }
 
 func doCpy(c *Cpu, addr *uint16) {
@@ -624,7 +623,7 @@ func doCpy(c *Cpu, addr *uint16) {
 	negative := result>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, result == 0)
-	c.statusRegister.Change(modules.CARRY, result >= 0)
+	c.statusRegister.Change(modules.CARRY, y >= memory)
 }
 
 func doInc(c *Cpu, addr *uint16) {
@@ -969,7 +968,7 @@ func doAnc(c *Cpu, addr *uint16) {
 	doAnd(c, addr)
 
 	a := c.aRegister.Read()
-	carryOut := (a >> 7) == 1
+	carryOut := a>>7 == 1
 
 	c.statusRegister.Change(modules.CARRY, carryOut)
 }
