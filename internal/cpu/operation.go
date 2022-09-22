@@ -300,12 +300,10 @@ func doRor(c *Cpu, addr *uint16) {
 
 func doBcc(c *Cpu, addr *uint16) {
 	carryIn := c.statusRegister.Get(modules.CARRY)
-
 	if !carryIn {
 		c.clock.Tick()
 		// maybe + 1 is required for pc
-		relative := int8(c.ram.Read(*addr))
-		//BitArray(uint=addr, length=8).unpack('int')
+		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
@@ -328,8 +326,7 @@ func doBcs(c *Cpu, addr *uint16) {
 	if carryIn {
 		c.clock.Tick()
 		// maybe + 1 is required for pc
-		relative := int8(c.ram.Read(*addr))
-		//[relative] = BitArray(uint=addr, length=8).unpack('int')
+		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
@@ -352,8 +349,7 @@ func doBeq(c *Cpu, addr *uint16) {
 	if zeroIn {
 		c.clock.Tick()
 		// maybe + 1 is required for pc
-		relative := int8(c.ram.Read(*addr))
-		//[relative] = BitArray(uint=addr, length=8).unpack('int')
+		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
@@ -375,8 +371,7 @@ func doBne(c *Cpu, addr *uint16) {
 	if !zeroIn {
 		c.clock.Tick()
 		// maybe + 1 is required for pc
-		relative := int8(c.ram.Read(*addr))
-		//[relative] = BitArray(uint=addr, length=8).unpack('int')
+		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
@@ -398,8 +393,7 @@ func doBvc(c *Cpu, addr *uint16) {
 	if !overflowIn {
 		c.clock.Tick()
 		// maybe + 1 is required for pc
-		relative := int8(c.ram.Read(*addr))
-		//[relative] = BitArray(uint=addr, length=8).unpack('int')
+		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
@@ -417,12 +411,10 @@ func doBvc(c *Cpu, addr *uint16) {
 func doBvs(c *Cpu, addr *uint16) {
 
 	overflowIn := c.statusRegister.Get(modules.OVERFLOW)
-
 	if overflowIn {
 		c.clock.Tick()
 		// maybe + 1 is required for pc
-		relative := int8(c.ram.Read(*addr))
-		//[relative] = BitArray(uint=addr, length=8).unpack('int')
+		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
@@ -444,8 +436,7 @@ func doBpl(c *Cpu, addr *uint16) {
 	if !negativeIn {
 		c.clock.Tick()
 		// maybe + 1 is required for pc
-		relative := int8(c.ram.Read(*addr))
-		//[relative] = BitArray(uint=addr, length=8).unpack('int')
+		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
@@ -467,8 +458,7 @@ func doBmi(c *Cpu, addr *uint16) {
 	if negativeIn {
 		c.clock.Tick()
 		// maybe + 1 is required for pc
-		relative := int8(c.ram.Read(*addr))
-		//[relative] = BitArray(uint=addr, length=8).unpack('int')
+		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
