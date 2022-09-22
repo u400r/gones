@@ -1,16 +1,16 @@
 package cpu
 
 var (
-	Immediate, Abusolute, AbusoluteX, AbusoluteY Addressing
-	ZeroPage, ZeroPageX, ZeroPageY, Relative     Addressing
-	Indirect, IndirectX, IndirectY, Implicit     Addressing
+	Immediate, Absolute, AbsoluteX, AbsoluteY Addressing
+	ZeroPage, ZeroPageX, ZeroPageY, Relative  Addressing
+	Indirect, IndirectX, IndirectY, Implicit  Addressing
 )
 
 func init() {
 	Immediate = &ImmediateMode{}
-	Abusolute = &AbusoluteMode{}
-	AbusoluteX = &AbusoluteXMode{}
-	AbusoluteY = &AbusoluteYMode{}
+	Absolute = &AbsoluteMode{}
+	AbsoluteX = &AbsoluteXMode{}
+	AbsoluteY = &AbsoluteYMode{}
 	ZeroPage = &ZeroPageMode{}
 	ZeroPageX = &ZeroPageXMode{}
 	ZeroPageY = &ZeroPageYMode{}
@@ -53,11 +53,11 @@ func (i *ImmediateMode) GetModeString() string {
 	return "Immediate"
 }
 
-type AbusoluteMode struct {
+type AbsoluteMode struct {
 	Mode
 }
 
-func (a *AbusoluteMode) GetAddress(c *Cpu) *uint16 {
+func (a *AbsoluteMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
 	c.programCounter.Increment()
 	absolute_low := c.ram.Read(c.programCounter.Read())
@@ -71,15 +71,15 @@ func (a *AbusoluteMode) GetAddress(c *Cpu) *uint16 {
 
 }
 
-func (a *AbusoluteMode) GetModeString() string {
-	return "Abusolute"
+func (a *AbsoluteMode) GetModeString() string {
+	return "Absolute"
 }
 
-type AbusoluteXMode struct {
+type AbsoluteXMode struct {
 	Mode
 }
 
-func (a *AbusoluteXMode) GetAddress(c *Cpu) *uint16 {
+func (a *AbsoluteXMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
 	c.programCounter.Increment()
 	absolute_low := c.ram.Read(c.programCounter.Read())
@@ -107,15 +107,15 @@ func (a *AbusoluteXMode) GetAddress(c *Cpu) *uint16 {
 
 }
 
-func (a *AbusoluteXMode) GetModeString() string {
-	return "AbusoluteX"
+func (a *AbsoluteXMode) GetModeString() string {
+	return "AbsoluteX"
 }
 
-type AbusoluteYMode struct {
+type AbsoluteYMode struct {
 	Mode
 }
 
-func (a *AbusoluteYMode) GetAddress(c *Cpu) *uint16 {
+func (a *AbsoluteYMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
 	c.programCounter.Increment()
 	absolute_low := c.ram.Read(c.programCounter.Read())
@@ -142,8 +142,8 @@ func (a *AbusoluteYMode) GetAddress(c *Cpu) *uint16 {
 	return &address
 
 }
-func (a *AbusoluteYMode) GetModeString() string {
-	return "AbusoluteY"
+func (a *AbsoluteYMode) GetModeString() string {
+	return "AbsoluteY"
 }
 
 type ZeroPageMode struct {
