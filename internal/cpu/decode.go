@@ -300,8 +300,12 @@ func (c *Cpu) initDecoder() {
 		{Isc, AbsoluteX},
 	}
 }
-func (c *Cpu) decode(opecode uint8) (Operatable, Addressing) {
-	decoded := OpecodeMapping[opecode]
-	return decoded.Operation, decoded.Addressing
+func (c *Cpu) decode() {
+	decoded := OpecodeMapping[c.instructionOpecode]
+	c.op = decoded.Operation
+	c.mode = decoded.Addressing
+	if c.op == nil || c.mode == nil {
+		panic("something went wrong")
+	}
 
 }

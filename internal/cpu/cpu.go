@@ -28,6 +28,8 @@ type Cpu struct {
 	// inner state
 	instructionAddress uint16
 	instructionOpecode uint8
+	op                 Operatable
+	mode               Addressing
 	debug              bool
 }
 
@@ -68,50 +70,49 @@ type AddressingMode func(c *Cpu) *uint16
 
 func (c *Cpu) Process() {
 	c.ProcessInterrupt()
-	opcode := c.fetch()
-	op, mode := c.decode(opcode)
-	if op == nil || mode == nil {
-		panic("something went wrong")
-	}
+	c.fetch()
+	c.decode()
 
-	addr := mode.GetAddress(c)
-	op.Do(c, addr)
+	addr := c.mode.GetAddress(c)
+	c.op.Do(c, addr)
 	c.programCounterRegister.Increment()
 	c.clock.Tick()
 	if c.debug {
-		c.printState(op, mode, addr)
+		c.printState(addr)
 	}
 
 }
 
-func (c *Cpu) printState(op Operatable, mode Addressing, addr *uint16) {
-	first, second := mode.GetOperandBytes(c)
+func (c *Cpu) printState(addr *uint16) {
+
+	first, second := c.mode.GetOperandBytes(c)
 	instruction := ""
 	if first == nil {
-		instruction = fmt.Sprintf("%04X  %02X        %v", c.instructionAddress, c.instructionOpecode, op.Opecode())
+		instruction = fmt.Sprintf("%04X  %02X        %v", c.instructionAddress, c.instructionOpecode, c.op.Opecode())
 
 	} else {
 		if second == nil {
-			instruction = fmt.Sprintf("%04X  %02X %02X     %v", c.instructionAddress, c.instructionOpecode, *first, op.Opecode())
+			instruction = fmt.Sprintf("%04X  %02X %02X     %v", c.instructionAddress, c.instructionOpecode, *first, c.op.Opecode())
 
 		} else {
-			instruction = fmt.Sprintf("%04X  %02X %02X %02X  %v", c.instructionAddress, c.instructionOpecode, *first, *second, op.Opecode())
+			instruction = fmt.Sprintf("%04X  %02X %02X %02X  %v", c.instructionAddress, c.instructionOpecode, *first, *second, c.op.Opecode())
 		}
 	}
+
 	registers := fmt.Sprintf("A:%02X X:%02X Y:%02X P:%02X SP:%02X", c.aRegister.Read(), c.xRegister.Read(), c.yRegister.Read(), c.statusRegister.Read(), c.stack.GetStackPointer())
 
 	if addr != nil {
-		fmt.Printf("%v  %v %v %04X\n", instruction, registers, mode.GetModeString(), *addr)
+		fmt.Printf("%v %v %v %04X CYC:%v\n", instruction, registers, c.mode.GetModeString(), *addr, c.clock.Cycles)
 
 	} else {
-		fmt.Printf("%v  %v %v %v\n", instruction, registers, mode.GetModeString(), addr)
+		fmt.Printf("%v %v %v %v CYC:%v\n", instruction, registers, c.mode.GetModeString(), addr, c.clock.Cycles)
 
 	}
 
 }
 
-func (c *Cpu) fetch() uint8 {
+func (c *Cpu) fetch() {
 	c.instructionAddress = c.programCounterRegister.Read()
 	c.instructionOpecode = c.ram.Read(c.instructionAddress)
-	return c.instructionOpecode
+
 }
