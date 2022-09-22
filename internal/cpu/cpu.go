@@ -20,24 +20,31 @@ type Cpu struct {
 	clock *Clock
 
 	// outside component
-	ram modules.Writable[uint8, uint16]
+	ram   modules.Writable[uint8, uint16]
+	rstIn modules.BitSignal
+	nmiIn modules.BitSignal
+	irqIn modules.BitSignal
 
 	// inner state
 	instructionAddress uint16
 	instructionOpecode uint8
 }
 
-func NewCpu(memory modules.Writable[uint8, uint16]) *Cpu {
+func NewCpu(memory modules.Writable[uint8, uint16],
+	rst, nmi, irq modules.BitSignal) *Cpu {
 	c := &Cpu{
 		aRegister:              modules.NewRegister(uint8(0)),
 		bRegister:              modules.NewRegister(uint8(0)),
 		xRegister:              modules.NewRegister(uint8(0)),
 		yRegister:              modules.NewRegister(uint8(0)),
 		programCounterRegister: modules.NewRegister(uint16(0)),
-		statusRegister:         modules.NewRegister(uint8(0)),
-		stack:                  modules.NewStack(memory, uint8(0)),
+		statusRegister:         modules.NewRegister(uint8(0x34)),
+		stack:                  modules.NewStack(memory, uint8(0xFD)),
 		ram:                    memory,
 		clock:                  &Clock{},
+		rstIn:                  rst,
+		nmiIn:                  nmi,
+		irqIn:                  irq,
 	}
 	c.initDecoder()
 	return c
@@ -58,6 +65,7 @@ func (c *Clock) GetCycles() int {
 type AddressingMode func(c *Cpu) *uint16
 
 func (c *Cpu) Process() {
+	c.ProcessInterrupt()
 	opcode := c.fetch()
 	op, mode := c.decode(opcode)
 	if op == nil || mode == nil {

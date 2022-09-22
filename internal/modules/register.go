@@ -1,29 +1,29 @@
 package modules
 
-type BitSignal interface {
+type ByteSignal interface {
 	uint8 | uint16 | uint32 | uint64
 }
 
-type SignedBitSignal interface {
+type SignedByteSignal interface {
 	int8 | int16 | int32 | int64
 }
 
-type ReadableRegister[T BitSignal] interface {
+type ReadableRegister[T ByteSignal] interface {
 	Read() T
 }
 
-type WritableRegister[T BitSignal] interface {
+type WritableRegister[T ByteSignal] interface {
 	Write(data T)
 	ReadableRegister[T]
 }
 
-type Counter[T BitSignal] interface {
+type Counter[T ByteSignal] interface {
 	Increment()
 	Decrement()
 	WritableRegister[T]
 }
 
-type Flag[T BitSignal] interface {
+type Flag[T ByteSignal] interface {
 	WritableRegister[T]
 	Get(nbit uint) bool
 	Set(nbit uint)
@@ -31,11 +31,11 @@ type Flag[T BitSignal] interface {
 	Change(nbit uint, flag bool)
 }
 
-type Register[T BitSignal] struct {
+type Register[T ByteSignal] struct {
 	data T
 }
 
-func NewRegister[T BitSignal](data T) *Register[T] {
+func NewRegister[T ByteSignal](data T) *Register[T] {
 	return &Register[T]{
 		data: data,
 	}

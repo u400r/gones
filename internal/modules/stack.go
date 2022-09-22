@@ -1,11 +1,11 @@
 package modules
 
-type Stack[T BitSignal, U BitSignal, V BitSignal] struct {
+type Stack[T ByteSignal, U ByteSignal, V ByteSignal] struct {
 	stackPointer Counter[U]
 	memory       Writable[T, V]
 }
 
-func NewStack[T BitSignal, U BitSignal, V BitSignal](ram Writable[T, V], addr U) *Stack[T, U, V] {
+func NewStack[T ByteSignal, U ByteSignal, V ByteSignal](ram Writable[T, V], addr U) *Stack[T, U, V] {
 	return &Stack[T, U, V]{
 		stackPointer: NewRegister(addr),
 		memory:       ram,

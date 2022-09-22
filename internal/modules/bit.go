@@ -1,57 +1,21 @@
 package modules
 
-func UnsignedAdd[T BitSignal](a T, b T, c bool) (T, bool) {
-	var carryIn T
-	if c {
-		carryIn = T(1)
-	} else {
-		carryIn = T(0)
-	}
-	result := a + b + carryIn
-	carryOut := result < a
-	return result, carryOut
+type BitSignal struct {
+	state bool
 }
 
-func SignedAdd[T SignedBitSignal](a T, b T, c bool) (T, bool) {
-	var carryIn T
-	if c {
-		carryIn = T(1)
-	} else {
-		carryIn = T(0)
-	}
-
-	result := a + b + carryIn
-	overflow := false
-	if (a > 0 && b > 0 && result < 0) || (a < 0 && b < 0 && result > 0) {
-		overflow = true
-	}
-	return result, overflow
+func (b *BitSignal) On() {
+	b.state = true
 }
 
-func UnsignedSub[T BitSignal](a T, b T, c bool) (T, bool) {
-	var carryIn T
-	if c {
-		carryIn = T(0)
-	} else {
-		carryIn = T(1)
-	}
-	result := a - b - carryIn
-	carryOut := result >= a
-	return result, carryOut
+func (b *BitSignal) Off() {
+	b.state = false
 }
 
-func SignedSub[T SignedBitSignal](a T, b T, c bool) (T, bool) {
-	var carryIn T
-	if c {
-		carryIn = T(0)
-	} else {
-		carryIn = T(1)
-	}
+func (b *BitSignal) Toggle() {
+	b.state = !b.state
+}
 
-	result := a - b - carryIn
-	overflow := false
-	if (a > 0 && b > 0 && result < 0) || (a < 0 && b < 0 && result > 0) {
-		overflow = true
-	}
-	return result, overflow
+func (b *BitSignal) Get() bool {
+	return b.state
 }

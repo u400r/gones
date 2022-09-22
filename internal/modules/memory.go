@@ -1,27 +1,27 @@
 package modules
 
-type Readable[T BitSignal, U BitSignal] interface {
+type Readable[T ByteSignal, U ByteSignal] interface {
 	Read(addr U) T
 }
 
-type Writable[T BitSignal, U BitSignal] interface {
+type Writable[T ByteSignal, U ByteSignal] interface {
 	Write(addr U, data T)
 	Readable[T, U]
 }
 
-type Memory[T BitSignal, U BitSignal] struct {
+type Memory[T ByteSignal, U ByteSignal] struct {
 	data []T
 	size U
 }
 
-func NewMemory[T BitSignal, U BitSignal](size U) *Memory[T, U] {
+func NewMemory[T ByteSignal, U ByteSignal](size U) *Memory[T, U] {
 	return &Memory[T, U]{
 		data: make([]T, size),
 		size: size,
 	}
 }
 
-func NewMemoryWith[T BitSignal, U BitSignal](data []T) *Memory[T, U] {
+func NewMemoryWith[T ByteSignal, U ByteSignal](data []T) *Memory[T, U] {
 	size := U(len(data))
 	return &Memory[T, U]{
 		data: data,
