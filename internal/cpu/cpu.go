@@ -77,6 +77,7 @@ func (c *Cpu) Process() {
 	addr := mode.GetAddress(c)
 	op.Do(c, addr)
 	c.programCounterRegister.Increment()
+	c.clock.Tick()
 	if c.debug {
 		c.printState(op, mode, addr)
 	}
