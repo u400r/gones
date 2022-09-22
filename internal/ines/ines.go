@@ -18,10 +18,11 @@ func ParseInes(fileName string) *cartridge.Cartridge {
 	defer fp.Close()
 	formatName := make([]byte, 4)
 	fp.Read(formatName)
+
 	romSize := make([]byte, 1)
 	fp.Read(romSize)
-
 	cartridge.PrgRomSize = uint16(romSize[0]) * 16384
+	fp.Read(romSize)
 	cartridge.ChrRomSize = uint16(romSize[0]) * 8192
 
 	flag6 := make([]byte, 1)
