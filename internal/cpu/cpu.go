@@ -109,10 +109,6 @@ func (c *Cpu) printState(op Operatable, mode Addressing, addr *uint16) {
 
 }
 
-func (c *Cpu) IsWaitOneClock() bool {
-	return true
-}
-
 func (c *Cpu) fetch() uint8 {
 	c.instructionAddress = c.programCounterRegister.Read()
 	c.instructionOpecode = c.ram.Read(c.instructionAddress)

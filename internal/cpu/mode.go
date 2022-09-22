@@ -25,11 +25,28 @@ type Addressing interface {
 	GetAddress(c *Cpu) *uint16
 	GetModeString() string
 	GetOperandBytes(c *Cpu) (*byte, *byte)
+	isWaitOneClock(c *Cpu) bool
+	isNop(c *Cpu) bool
 }
 
 type Mode struct {
 	firstByte  *uint8
 	secondByte *uint8
+}
+
+func (m *Mode) isWaitOneClock(c *Cpu) bool {
+	if c.op.IsWriteOperation() {
+		return true
+	}
+	return false
+}
+
+func (m *Mode) isNop(c *Cpu) bool {
+	if c.op.Opecode() == "NOP" {
+		return true
+	} else {
+		return false
+	}
 }
 
 type ImmediateMode struct {
@@ -97,7 +114,7 @@ func (a *AbsoluteXMode) GetAddress(c *Cpu) *uint16 {
 		// absolute_high because carry is included in low
 		c.clock.Tick()
 	} else {
-		if c.IsWaitOneClock() {
+		if a.isWaitOneClock(c) {
 			c.clock.Tick()
 		}
 
@@ -133,7 +150,7 @@ func (a *AbsoluteYMode) GetAddress(c *Cpu) *uint16 {
 		// absolute_high because carry is included in low
 		c.clock.Tick()
 	} else {
-		if c.IsWaitOneClock() {
+		if a.isWaitOneClock(c) {
 			c.clock.Tick()
 		}
 	}
@@ -252,6 +269,9 @@ func (i *IndirectXMode) GetAddress(c *Cpu) *uint16 {
 	c.programCounterRegister.Increment()
 	zero_page_address := c.ram.Read(c.programCounterRegister.Read())
 	i.firstByte = &zero_page_address
+	if i.isNop(c) {
+		return nil
+	}
 	// ignore carry_out so this shall lower than 0xff
 	c.clock.Tick()
 	indirect_address := (zero_page_address + c.xRegister.Read()) & 0xff
@@ -287,7 +307,7 @@ func (i *IndirectYMode) GetAddress(c *Cpu) *uint16 {
 	if carry_out {
 		c.clock.Tick()
 	} else {
-		if c.IsWaitOneClock() {
+		if i.isWaitOneClock(c) {
 			c.clock.Tick()
 		}
 	}

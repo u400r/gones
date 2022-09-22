@@ -95,13 +95,37 @@ func init() {
 }
 
 type Operation struct {
-	do      func(c *Cpu, addr *uint16)
-	opecode string
+	do                 func(c *Cpu, addr *uint16)
+	opecode            string
+	isCombineoperation bool
 }
 
 type Operatable interface {
 	Do(c *Cpu, addr *uint16)
 	Opecode() string
+	IsWriteOperation() bool
+	IsCombineOperation() bool
+	SetCombineOperation(v bool)
+}
+
+func (o *Operation) IsWriteOperation() bool {
+	if o.opecode == "ASL" || o.opecode == "LSR" || o.opecode == "ROL" || o.opecode == "ROR" ||
+		o.opecode == "INC" || o.opecode == "DEC" || o.opecode == "STA" || o.opecode == "STX" ||
+		o.opecode == "STY" {
+		return true
+	}
+	return false
+}
+
+func (o *Operation) SetCombineOperation(v bool) {
+	o.isCombineoperation = v
+}
+func (o *Operation) IsCombineOperation() bool {
+	if o.isCombineoperation {
+		o.SetCombineOperation(false)
+		return true
+	}
+	return false
 }
 
 func (o *Operation) Do(c *Cpu, addr *uint16) {
@@ -185,7 +209,9 @@ func doEor(c *Cpu, addr *uint16) {
 }
 
 func doAsl(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	if !c.op.IsCombineOperation() {
+		c.clock.Tick()
+	}
 	var data uint8
 	if addr != nil {
 		data = c.ram.Read(*addr)
@@ -209,7 +235,9 @@ func doAsl(c *Cpu, addr *uint16) {
 }
 
 func doLsr(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	if !c.op.IsCombineOperation() {
+		c.clock.Tick()
+	}
 	var data uint8
 	if addr != nil {
 		data = c.ram.Read(*addr)
@@ -232,7 +260,9 @@ func doLsr(c *Cpu, addr *uint16) {
 }
 
 func doRol(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	if !c.op.IsCombineOperation() {
+		c.clock.Tick()
+	}
 
 	var data uint8
 	if addr != nil {
@@ -265,7 +295,9 @@ func doRol(c *Cpu, addr *uint16) {
 }
 
 func doRor(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	if !c.op.IsCombineOperation() {
+		c.clock.Tick()
+	}
 
 	var data uint8
 	if addr != nil {
@@ -309,10 +341,10 @@ func doBcc(c *Cpu, addr *uint16) {
 		pc_high := (pc >> 8) & 255
 		pc_low_int16 := int16(pc_low) + int16(relative)
 		// FIXEME the operater maybe reverse
-		carryOut := pc_low_int16 < 256
+		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			c.clock.Tick()
+			//c.clock.Tick()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -331,10 +363,10 @@ func doBcs(c *Cpu, addr *uint16) {
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
 		pc_low_int16 := int16(pc_low) + int16(relative)
-		carryOut := pc_low_int16 < 256
+		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			c.clock.Tick()
+			//c.clock.Tick()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -354,10 +386,9 @@ func doBeq(c *Cpu, addr *uint16) {
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
 		pc_low_int16 := int16(pc_low) + int16(relative)
-		carryOut := pc_low_int16 < 256
-
+		carryOut := pc_low_int16 > 255
 		if carryOut {
-			c.clock.Tick()
+			//c.clock.Tick()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -376,10 +407,10 @@ func doBne(c *Cpu, addr *uint16) {
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
 		pc_low_int16 := int16(pc_low) + int16(relative)
-		carryOut := pc_low_int16 < 256
+		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			c.clock.Tick()
+			//c.clock.Tick()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -398,10 +429,10 @@ func doBvc(c *Cpu, addr *uint16) {
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
 		pc_low_int16 := int16(pc_low) + int16(relative)
-		carryOut := pc_low_int16 < 256
+		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			c.clock.Tick()
+			//c.clock.Tick()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -419,10 +450,10 @@ func doBvs(c *Cpu, addr *uint16) {
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
 		pc_low_int16 := int16(pc_low) + int16(relative)
-		carryOut := pc_low_int16 < 256
+		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			c.clock.Tick()
+			//c.clock.Tick()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -441,10 +472,10 @@ func doBpl(c *Cpu, addr *uint16) {
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
 		pc_low_int16 := int16(pc_low) + int16(relative)
-		carryOut := pc_low_int16 < 256
+		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			c.clock.Tick()
+			//c.clock.Tick()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -463,10 +494,10 @@ func doBmi(c *Cpu, addr *uint16) {
 		pc_low := pc & 255
 		pc_high := (pc >> 8) & 255
 		pc_low_int16 := int16(pc_low) + int16(relative)
-		carryOut := pc_low_int16 < 256
+		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			c.clock.Tick()
+			//c.clock.Tick()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -617,8 +648,10 @@ func doCpy(c *Cpu, addr *uint16) {
 }
 
 func doInc(c *Cpu, addr *uint16) {
+	if !c.op.IsCombineOperation() {
+		c.clock.Tick()
 
-	c.clock.Tick()
+	}
 
 	memory := c.ram.Read(*addr)
 
@@ -633,7 +666,9 @@ func doInc(c *Cpu, addr *uint16) {
 }
 
 func doDec(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	if !c.op.IsCombineOperation() {
+		c.clock.Tick()
+	}
 
 	memory := c.ram.Read(*addr)
 
@@ -737,7 +772,9 @@ func doClv(c *Cpu, addr *uint16) {
 }
 
 func doLda(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	if !c.op.IsCombineOperation() {
+		c.clock.Tick()
+	}
 
 	memory := c.ram.Read(*addr)
 	c.aRegister.Write(memory)
@@ -886,21 +923,25 @@ func doNop(c *Cpu, addr *uint16) {
 // below is illegal opcode func definition
 // combination of two operations with the same addring mode
 func doSlo(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doAsl(c, addr)
 	doOra(c, addr)
 }
 
 func doRla(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doRol(c, addr)
 	doAnd(c, addr)
 }
 
 func doSre(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doLsr(c, addr)
 	doEor(c, addr)
 }
 
 func doRra(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doRor(c, addr)
 	doAdc(c, addr)
 }
@@ -916,22 +957,26 @@ func doSax(c *Cpu, addr *uint16) {
 }
 
 func doLax(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doLda(c, addr)
 	doLdx(c, addr)
 }
 
 func doDcp(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doDec(c, addr)
 	doCmp(c, addr)
 }
 
 func doIsc(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doInc(c, addr)
 	doSbc(c, addr)
 }
 
 // combinations of an immediate and an implied command
 func doAnc(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doAnd(c, addr)
 
 	a := c.aRegister.Read()
@@ -941,21 +986,25 @@ func doAnc(c *Cpu, addr *uint16) {
 }
 
 func doAlr(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doAnd(c, addr)
 	doLsr(c, nil)
 }
 
 func doArr(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doAnd(c, addr)
 	doRor(c, nil)
 }
 
 func doXaa(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doTxa(c, nil)
 	doAnd(c, addr)
 }
 
 func doLaxi(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doLda(c, addr)
 	doTax(c, nil)
 }
@@ -965,6 +1014,7 @@ func doAxs(c *Cpu, addr *uint16) {
 }
 
 func doSbcn(c *Cpu, addr *uint16) {
+	c.op.SetCombineOperation(true)
 	doSbc(c, addr)
 	doNop(c, nil)
 }
