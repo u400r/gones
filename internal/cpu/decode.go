@@ -2,7 +2,7 @@ package cpu
 
 type Decoded struct {
 	*Operation
-	*Mode
+	Addressing
 }
 
 var OpecodeMapping []Decoded
@@ -302,6 +302,6 @@ func (c *Cpu) initDecoder() {
 }
 func (c *Cpu) decode(opecode uint8) (Operatable, Addressing) {
 	decoded := OpecodeMapping[opecode]
-	return decoded.Operation, decoded.Mode
+	return decoded.Operation, decoded.Addressing
 
 }
