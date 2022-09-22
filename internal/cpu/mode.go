@@ -44,8 +44,8 @@ func (i *ImmediateMode) GetAddress(c *Cpu) *uint16 {
 	if false {
 		c.clock.Tick()
 	}
-	c.programCounter.Increment()
-	address := c.programCounter.Read()
+	c.programCounterRegister.Increment()
+	address := c.programCounterRegister.Read()
 	return &address
 
 }
@@ -59,12 +59,12 @@ type AbsoluteMode struct {
 
 func (a *AbsoluteMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	absolute_low := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	absolute_low := c.ram.Read(c.programCounterRegister.Read())
 	a.firstByte = &absolute_low
 	c.clock.Tick()
-	c.programCounter.Increment()
-	absolute_high := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	absolute_high := c.ram.Read(c.programCounterRegister.Read())
 	a.secondByte = &absolute_high
 	address := uint16(absolute_high)<<8 + uint16(absolute_low)
 	return &address
@@ -81,14 +81,14 @@ type AbsoluteXMode struct {
 
 func (a *AbsoluteXMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	absolute_low := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	absolute_low := c.ram.Read(c.programCounterRegister.Read())
 	a.firstByte = &absolute_low
 	c.clock.Tick()
-	c.programCounter.Increment()
-	absolute_high := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	absolute_high := c.ram.Read(c.programCounterRegister.Read())
 	a.secondByte = &absolute_high
-	index := c.x.Read()
+	index := c.xRegister.Read()
 	// why this calculation does not take 1 clock?
 	absolute_low = absolute_low + index
 	carry_out := absolute_low > 255
@@ -117,14 +117,14 @@ type AbsoluteYMode struct {
 
 func (a *AbsoluteYMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	absolute_low := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	absolute_low := c.ram.Read(c.programCounterRegister.Read())
 	a.firstByte = &absolute_low
 	c.clock.Tick()
-	c.programCounter.Increment()
-	absolute_high := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	absolute_high := c.ram.Read(c.programCounterRegister.Read())
 	a.secondByte = &absolute_high
-	index := c.y.Read()
+	index := c.yRegister.Read()
 	// why this calculation does not take 1 clock?
 	absolute_low = absolute_low + index
 	carry_out := absolute_low > 255
@@ -152,8 +152,8 @@ type ZeroPageMode struct {
 
 func (z *ZeroPageMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	address_low := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	address_low := c.ram.Read(c.programCounterRegister.Read())
 	z.firstByte = &address_low
 	address := uint16(address_low)
 	return &address
@@ -170,12 +170,12 @@ type ZeroPageXMode struct {
 
 func (z *ZeroPageXMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	zero_page_address := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	zero_page_address := c.ram.Read(c.programCounterRegister.Read())
 	z.firstByte = &zero_page_address
 	c.clock.Tick()
 	// ignore carry
-	zero_page_x_address := uint16((zero_page_address + c.x.Read()) & 255)
+	zero_page_x_address := uint16((zero_page_address + c.xRegister.Read()) & 255)
 	return &zero_page_x_address
 }
 func (a *ZeroPageXMode) GetModeString() string {
@@ -188,11 +188,11 @@ type ZeroPageYMode struct {
 
 func (z *ZeroPageYMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	zero_page_address := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	zero_page_address := c.ram.Read(c.programCounterRegister.Read())
 	z.firstByte = &zero_page_address
 	c.clock.Tick()
-	zero_page_y_address := uint16((zero_page_address + c.y.Read()) & 255)
+	zero_page_y_address := uint16((zero_page_address + c.yRegister.Read()) & 255)
 	return &zero_page_y_address
 
 }
@@ -206,8 +206,8 @@ type RelativeMode struct {
 
 func (r *RelativeMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	relative := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	relative := c.ram.Read(c.programCounterRegister.Read())
 	r.firstByte = &relative
 	relative_16 := uint16(relative)
 	return &relative_16
@@ -223,12 +223,12 @@ type IndirectMode struct {
 
 func (i *IndirectMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	indirect_address_low := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	indirect_address_low := c.ram.Read(c.programCounterRegister.Read())
 	i.firstByte = &indirect_address_low
 	c.clock.Tick()
-	c.programCounter.Increment()
-	indirect_address_high := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	indirect_address_high := c.ram.Read(c.programCounterRegister.Read())
 	i.secondByte = &indirect_address_high
 	c.clock.Tick()
 	address_low := c.ram.Read(uint16(indirect_address_high<<8) + uint16(indirect_address_low))
@@ -249,12 +249,12 @@ type IndirectXMode struct {
 
 func (i *IndirectXMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	zero_page_address := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	zero_page_address := c.ram.Read(c.programCounterRegister.Read())
 	i.firstByte = &zero_page_address
 	// ignore carry_out so this shall lower than 0xff
 	c.clock.Tick()
-	indirect_address := (zero_page_address + c.x.Read()) & 0xff
+	indirect_address := (zero_page_address + c.xRegister.Read()) & 0xff
 	c.clock.Tick()
 	address_low := c.ram.Read(uint16(indirect_address))
 	c.clock.Tick()
@@ -274,14 +274,14 @@ type IndirectYMode struct {
 
 func (i *IndirectYMode) GetAddress(c *Cpu) *uint16 {
 	c.clock.Tick()
-	c.programCounter.Increment()
-	indirect_address := c.ram.Read(c.programCounter.Read())
+	c.programCounterRegister.Increment()
+	indirect_address := c.ram.Read(c.programCounterRegister.Read())
 	i.firstByte = &indirect_address
 	c.clock.Tick()
 	address_low := c.ram.Read(uint16(indirect_address))
 	c.clock.Tick()
 	address_high := c.ram.Read(uint16((indirect_address + 1) & 0xff))
-	index := c.y.Read()
+	index := c.yRegister.Read()
 	address_low = address_low + index
 	carry_out := address_low > 255
 	if carry_out {

@@ -7,28 +7,28 @@ import (
 )
 
 type Cpu struct {
-	a              modules.WritableRegister[uint8]
-	b              modules.WritableRegister[uint8]
-	x              modules.WritableRegister[uint8]
-	y              modules.WritableRegister[uint8]
-	programCounter modules.Counter[uint16]
-	stack          *modules.Stack[uint8, uint8, uint16]
-	ram            modules.Writable[uint8, uint16]
-	clock          Clock
-	status         modules.Flag[uint8]
+	aRegister              modules.WritableRegister[uint8]
+	bRegister              modules.WritableRegister[uint8]
+	xRegister              modules.WritableRegister[uint8]
+	yRegister              modules.WritableRegister[uint8]
+	programCounterRegister modules.Counter[uint16]
+	statusRegister         modules.Flag[uint8]
+	stack                  *modules.Stack[uint8, uint8, uint16]
+	ram                    modules.Writable[uint8, uint16]
+	clock                  Clock
 }
 
 func NewCpu(memory modules.Writable[uint8, uint16]) *Cpu {
 	c := &Cpu{
-		a:              modules.NewRegister(uint8(0)),
-		b:              modules.NewRegister(uint8(0)),
-		x:              modules.NewRegister(uint8(0)),
-		y:              modules.NewRegister(uint8(0)),
-		programCounter: modules.NewRegister(uint16(0)),
-		status:         modules.NewRegister(uint8(0)),
-		stack:          modules.NewStack(memory, uint8(0)),
-		ram:            memory,
-		clock:          &clock{},
+		aRegister:              modules.NewRegister(uint8(0)),
+		bRegister:              modules.NewRegister(uint8(0)),
+		xRegister:              modules.NewRegister(uint8(0)),
+		yRegister:              modules.NewRegister(uint8(0)),
+		programCounterRegister: modules.NewRegister(uint16(0)),
+		statusRegister:         modules.NewRegister(uint8(0)),
+		stack:                  modules.NewStack(memory, uint8(0)),
+		ram:                    memory,
+		clock:                  &clock{},
 	}
 	c.initDecoder()
 	return c
@@ -56,7 +56,7 @@ func (c *Cpu) Process() {
 
 	addr := mode.GetAddress(c)
 	op.Do(c, addr)
-	c.programCounter.Increment()
+	c.programCounterRegister.Increment()
 
 }
 
@@ -65,5 +65,5 @@ func (c *Cpu) IsWaitOneClock() bool {
 }
 
 func (c *Cpu) fetch() uint8 {
-	return c.ram.Read(c.programCounter.Read())
+	return c.ram.Read(c.programCounterRegister.Read())
 }
