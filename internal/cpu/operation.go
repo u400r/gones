@@ -740,10 +740,7 @@ func doLda(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 
 	memory := c.ram.Read(*addr)
-
 	c.aRegister.Write(memory)
-	// TODO
-	// status registers modified according to a register , not memory data
 	negative := memory>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, memory == 0)
@@ -755,9 +752,6 @@ func doLdx(c *Cpu, addr *uint16) {
 	memory := c.ram.Read(*addr)
 
 	c.xRegister.Write(memory)
-
-	// TODO
-	// status registers modified according to x register , not memory data
 	negative := memory>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, memory == 0)
@@ -769,9 +763,6 @@ func doLdy(c *Cpu, addr *uint16) {
 	memory := c.ram.Read(*addr)
 
 	c.yRegister.Write(memory)
-
-	// TODO
-	// status registers modified according to y register , not memory data
 	negative := memory>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, memory == 0)
@@ -797,15 +788,13 @@ func doSty(c *Cpu, addr *uint16) {
 	y := c.yRegister.Read()
 
 	c.ram.Write(*addr, y)
+
 }
 
 func doTax(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	a := c.aRegister.Read()
 	c.xRegister.Write(a)
-
-	// TODO
-	// status registers modified according to y register , not memory data
 	negative := a>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, a == 0)
@@ -815,9 +804,6 @@ func doTxa(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	x := c.xRegister.Read()
 	c.aRegister.Write(x)
-
-	// TODO
-	// status registers modified according to y register , not memory data
 	negative := x>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, x == 0)
@@ -828,9 +814,6 @@ func doTay(c *Cpu, addr *uint16) {
 
 	a := c.aRegister.Read()
 	c.yRegister.Write(a)
-
-	// TODO
-	// status registers modified according to y register , not memory data
 	negative := a>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, a == 0)
@@ -840,9 +823,6 @@ func doTya(c *Cpu, addr *uint16) {
 	c.clock.Tick()
 	y := c.yRegister.Read()
 	c.aRegister.Write(y)
-
-	// TODO
-	// status registers modified according to y register , not memory data
 	negative := y>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, y == 0)
@@ -853,9 +833,6 @@ func doTsx(c *Cpu, addr *uint16) {
 
 	stackPointer := c.stack.GetStackPointer()
 	c.xRegister.Write(stackPointer)
-
-	// TODO
-	// status registers modified according to y register , not memory data
 	negative := stackPointer>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, stackPointer == 0)
