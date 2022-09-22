@@ -28,6 +28,7 @@ type Cpu struct {
 	// inner state
 	instructionAddress uint16
 	instructionOpecode uint8
+	debug              bool
 }
 
 func NewCpu(memory modules.Writable[uint8, uint16],
@@ -45,6 +46,7 @@ func NewCpu(memory modules.Writable[uint8, uint16],
 		rstIn:                  rst,
 		nmiIn:                  nmi,
 		irqIn:                  irq,
+		debug:                  true,
 	}
 	c.initDecoder()
 	return c
@@ -75,23 +77,34 @@ func (c *Cpu) Process() {
 	addr := mode.GetAddress(c)
 	op.Do(c, addr)
 	c.programCounterRegister.Increment()
-	c.printState(op, mode)
+	if c.debug {
+		c.printState(op, mode, addr)
+	}
 
 }
 
-func (c *Cpu) printState(op Operatable, mode Addressing) {
+func (c *Cpu) printState(op Operatable, mode Addressing, addr *uint16) {
 	first, second := mode.GetOperandBytes(c)
-
+	instruction := ""
 	if first == nil {
-		fmt.Printf("%X  %X        %v %v\n", c.instructionAddress, c.instructionOpecode, op.Opecode(), c.clock.Cycles)
+		instruction = fmt.Sprintf("%04X  %02X        %v", c.instructionAddress, c.instructionOpecode, op.Opecode())
 
 	} else {
 		if second == nil {
-			fmt.Printf("%4X  %2X %2X     %v %v\n", c.instructionAddress, c.instructionOpecode, *first, op.Opecode(), c.clock.Cycles)
+			instruction = fmt.Sprintf("%04X  %02X %02X     %v", c.instructionAddress, c.instructionOpecode, *first, op.Opecode())
 
 		} else {
-			fmt.Printf("%4X  %2X %2X %2X  %v %v\n", c.instructionAddress, c.instructionOpecode, *first, *second, op.Opecode(), c.clock.Cycles)
+			instruction = fmt.Sprintf("%04X  %02X %02X %02X  %v", c.instructionAddress, c.instructionOpecode, *first, *second, op.Opecode())
 		}
+	}
+	registers := fmt.Sprintf("A:%02X X:%02X Y:%02X P:%02X SP:%02X", c.aRegister.Read(), c.xRegister.Read(), c.yRegister.Read(), c.statusRegister.Read(), c.stack.GetStackPointer())
+
+	if addr != nil {
+		fmt.Printf("%v  %v %v %04X\n", instruction, registers, mode.GetModeString(), *addr)
+
+	} else {
+		fmt.Printf("%v  %v %v %v\n", instruction, registers, mode.GetModeString(), addr)
+
 	}
 
 }

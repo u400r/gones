@@ -1,6 +1,10 @@
 package bus
 
-import "github.com/u400r/gones/internal/modules"
+import (
+	"fmt"
+
+	"github.com/u400r/gones/internal/modules"
+)
 
 type CpuBus struct {
 	ram modules.Writable[uint8, uint16]
@@ -8,6 +12,7 @@ type CpuBus struct {
 	extendedRam modules.Writable[uint8, uint16]
 	prgRomA     modules.Readable[uint8, uint16]
 	prgRomB     modules.Readable[uint8, uint16]
+	debug       bool
 }
 
 func NewCpuBus(prgRomA modules.Readable[uint8, uint16],
@@ -18,12 +23,17 @@ func NewCpuBus(prgRomA modules.Readable[uint8, uint16],
 		extendedRam: modules.NewMemory[uint8, uint16](8192),
 		prgRomA:     prgRomA,
 		prgRomB:     prgRomB,
+		debug:       false,
 	}
 }
 
 func (c *CpuBus) Read(addr uint16) uint8 {
 	if addr < 8192 {
-		return c.ram.Read(addr & 2047)
+		data := c.ram.Read(addr & 2047)
+		if c.debug {
+			fmt.Printf("read  -> %04X %02X\n", addr&2047, data)
+		}
+		return data
 	} else if 8191 < addr && addr < 16384 {
 		panic("not implemented")
 	} else if 16383 < addr && addr < 16416 {
@@ -33,9 +43,17 @@ func (c *CpuBus) Read(addr uint16) uint8 {
 	} else if 24575 < addr && addr < 32768 {
 		return c.extendedRam.Read(addr & 8191)
 	} else if 32767 < addr && addr < 49152 {
-		return c.prgRomA.Read(addr & 16383)
+		data := c.prgRomB.Read(addr & 16383)
+		if c.debug {
+			fmt.Printf("prog  -> %04X %02X\n", addr&16383, data)
+		}
+		return data
 	} else if 40151 < addr && addr <= 65535 {
-		return c.prgRomB.Read(addr & 16383)
+		data := c.prgRomB.Read(addr & 16383)
+		if c.debug {
+			fmt.Printf("prog  -> %04X %02X\n", addr&16383, data)
+		}
+		return data
 	} else {
 		panic("accessing outside of world")
 	}
@@ -43,6 +61,9 @@ func (c *CpuBus) Read(addr uint16) uint8 {
 
 func (c *CpuBus) Write(addr uint16, data uint8) {
 	if addr < 8192 {
+		if c.debug {
+			fmt.Printf("write -> %04X %02X\n", addr&2047, data)
+		}
 		c.ram.Write(addr&2047, data)
 	} else if 8191 < addr && addr < 24576 {
 		panic("not implemented")
