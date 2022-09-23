@@ -3,6 +3,7 @@ package cpu
 import (
 	"fmt"
 
+	"github.com/u400r/gones/internal/bus"
 	"github.com/u400r/gones/internal/modules"
 )
 
@@ -17,7 +18,7 @@ type Cpu struct {
 	// stack
 	stack *modules.Stack[uint8, uint8, uint16]
 	// clock
-	clock *Clock
+	clock *bus.Clock
 
 	// outside component
 	ram   modules.Writable[uint8, uint16]
@@ -34,7 +35,7 @@ type Cpu struct {
 }
 
 func NewCpu(memory modules.Writable[uint8, uint16],
-	rst, nmi, irq modules.BitSignal) *Cpu {
+	rst, nmi, irq modules.BitSignal, clock *bus.Clock) *Cpu {
 	c := &Cpu{
 		aRegister:              modules.NewRegister(uint8(0)),
 		bRegister:              modules.NewRegister(uint8(0)),
@@ -44,7 +45,7 @@ func NewCpu(memory modules.Writable[uint8, uint16],
 		statusRegister:         modules.NewRegister(uint8(0x34)),
 		stack:                  modules.NewStack(memory, uint8(0xFD)),
 		ram:                    memory,
-		clock:                  &Clock{},
+		clock:                  clock,
 		rstIn:                  rst,
 		nmiIn:                  nmi,
 		irqIn:                  irq,
@@ -52,18 +53,6 @@ func NewCpu(memory modules.Writable[uint8, uint16],
 	}
 	c.initDecoder()
 	return c
-}
-
-type Clock struct {
-	Cycles int
-}
-
-func (c *Clock) Tick() {
-	c.Cycles += 1
-}
-
-func (c *Clock) GetCycles() int {
-	return c.Cycles
 }
 
 type AddressingMode func(c *Cpu) *uint16
@@ -76,7 +65,7 @@ func (c *Cpu) Process() {
 	addr := c.mode.GetAddress(c)
 	c.op.Do(c, addr)
 	c.programCounterRegister.Increment()
-	c.clock.Tick()
+	c.clock.Tock()
 	if c.debug {
 		c.printState(addr)
 	}

@@ -59,7 +59,7 @@ func (m *Mode) GetOperandBytes(c *Cpu) (*byte, *byte) {
 
 func (i *ImmediateMode) GetAddress(c *Cpu) *uint16 {
 	if false {
-		c.clock.Tick()
+		c.clock.Tock()
 	}
 	c.programCounterRegister.Increment()
 	address := c.programCounterRegister.Read()
@@ -75,11 +75,11 @@ type AbsoluteMode struct {
 }
 
 func (a *AbsoluteMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	absolute_low := c.ram.Read(c.programCounterRegister.Read())
 	a.firstByte = &absolute_low
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	absolute_high := c.ram.Read(c.programCounterRegister.Read())
 	a.secondByte = &absolute_high
@@ -97,11 +97,11 @@ type AbsoluteXMode struct {
 }
 
 func (a *AbsoluteXMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	absolute_low := c.ram.Read(c.programCounterRegister.Read())
 	a.firstByte = &absolute_low
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	absolute_high := c.ram.Read(c.programCounterRegister.Read())
 	a.secondByte = &absolute_high
@@ -112,10 +112,10 @@ func (a *AbsoluteXMode) GetAddress(c *Cpu) *uint16 {
 	if carry_out {
 		// tick one more clock but no need to Increment
 		// absolute_high because carry is included in low
-		c.clock.Tick()
+		c.clock.Tock()
 	} else {
 		if a.isWaitOneClock(c) {
-			c.clock.Tick()
+			c.clock.Tock()
 		}
 
 	}
@@ -133,11 +133,11 @@ type AbsoluteYMode struct {
 }
 
 func (a *AbsoluteYMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	absolute_low := c.ram.Read(c.programCounterRegister.Read())
 	a.firstByte = &absolute_low
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	absolute_high := c.ram.Read(c.programCounterRegister.Read())
 	a.secondByte = &absolute_high
@@ -148,10 +148,10 @@ func (a *AbsoluteYMode) GetAddress(c *Cpu) *uint16 {
 	if carry_out {
 		// tick one more clock but no need to Increment
 		// absolute_high because carry is included in low
-		c.clock.Tick()
+		c.clock.Tock()
 	} else {
 		if a.isWaitOneClock(c) {
-			c.clock.Tick()
+			c.clock.Tock()
 		}
 	}
 
@@ -168,7 +168,7 @@ type ZeroPageMode struct {
 }
 
 func (z *ZeroPageMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	address_low := c.ram.Read(c.programCounterRegister.Read())
 	z.firstByte = &address_low
@@ -186,11 +186,11 @@ type ZeroPageXMode struct {
 }
 
 func (z *ZeroPageXMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	zero_page_address := c.ram.Read(c.programCounterRegister.Read())
 	z.firstByte = &zero_page_address
-	c.clock.Tick()
+	c.clock.Tock()
 	// ignore carry
 	zero_page_x_address := uint16((zero_page_address + c.xRegister.Read()) & 255)
 	return &zero_page_x_address
@@ -204,11 +204,11 @@ type ZeroPageYMode struct {
 }
 
 func (z *ZeroPageYMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	zero_page_address := c.ram.Read(c.programCounterRegister.Read())
 	z.firstByte = &zero_page_address
-	c.clock.Tick()
+	c.clock.Tock()
 	zero_page_y_address := uint16((zero_page_address + c.yRegister.Read()) & 255)
 	return &zero_page_y_address
 
@@ -222,7 +222,7 @@ type RelativeMode struct {
 }
 
 func (r *RelativeMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	relative := c.ram.Read(c.programCounterRegister.Read())
 	r.firstByte = &relative
@@ -234,22 +234,26 @@ func (r *RelativeMode) GetModeString() string {
 	return "Relative"
 }
 
+func (r *RelativeMode) GetOperandFormattedString(c *Cpu) string {
+	return fmt.Sprintf("$%2v%2v", *r.secondByte, r.firstByte)
+}
+
 type IndirectMode struct {
 	Mode
 }
 
 func (i *IndirectMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	indirect_address_low := c.ram.Read(c.programCounterRegister.Read())
 	i.firstByte = &indirect_address_low
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	indirect_address_high := c.ram.Read(c.programCounterRegister.Read())
 	i.secondByte = &indirect_address_high
-	c.clock.Tick()
+	c.clock.Tock()
 	address_low := c.ram.Read(uint16(indirect_address_high)<<8 + uint16(indirect_address_low))
-	c.clock.Tick()
+	c.clock.Tock()
 	// ignore carry from lower bit inrement
 	address_high := c.ram.Read(uint16(indirect_address_high)<<8 + uint16(indirect_address_low+1))
 	address := uint16(address_high)<<8 + uint16(address_low)
@@ -265,7 +269,7 @@ type IndirectXMode struct {
 }
 
 func (i *IndirectXMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	zero_page_address := c.ram.Read(c.programCounterRegister.Read())
 	i.firstByte = &zero_page_address
@@ -273,11 +277,11 @@ func (i *IndirectXMode) GetAddress(c *Cpu) *uint16 {
 		return nil
 	}
 	// ignore carry_out so this shall lower than 0xff
-	c.clock.Tick()
+	c.clock.Tock()
 	indirect_address := (zero_page_address + c.xRegister.Read()) & 0xff
-	c.clock.Tick()
+	c.clock.Tock()
 	address_low := c.ram.Read(uint16(indirect_address))
-	c.clock.Tick()
+	c.clock.Tock()
 	address_high := c.ram.Read(uint16((indirect_address + 1) & 0xff))
 	address := uint16(address_high)<<8 + uint16(address_low)
 	return &address
@@ -293,22 +297,22 @@ type IndirectYMode struct {
 }
 
 func (i *IndirectYMode) GetAddress(c *Cpu) *uint16 {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
 	indirect_address := c.ram.Read(c.programCounterRegister.Read())
 	i.firstByte = &indirect_address
-	c.clock.Tick()
+	c.clock.Tock()
 	address_low := c.ram.Read(uint16(indirect_address))
-	c.clock.Tick()
+	c.clock.Tock()
 	address_high := c.ram.Read(uint16(indirect_address + 1))
 	index := c.yRegister.Read()
 	address_low_16 := uint16(address_low) + uint16(index)
 	carry_out := address_low_16 > 255
 	if carry_out {
-		c.clock.Tick()
+		c.clock.Tock()
 	} else {
 		if i.isWaitOneClock(c) {
-			c.clock.Tick()
+			c.clock.Tock()
 		}
 	}
 	address := uint16(address_high)<<8 + address_low_16
@@ -326,7 +330,7 @@ type ImplicitMode struct {
 
 func (i *ImplicitMode) GetAddress(c *Cpu) *uint16 {
 	if false {
-		c.clock.Tick()
+		c.clock.Tock()
 	}
 	return nil
 }

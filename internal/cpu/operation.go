@@ -136,7 +136,7 @@ func (o *Operation) Opecode() string {
 	return o.opecode
 }
 func doAdc(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	a := c.aRegister.Read()
 	memory := c.ram.Read(*addr)
 	carryIn := c.statusRegister.Get(modules.CARRY)
@@ -151,7 +151,7 @@ func doAdc(c *Cpu, addr *uint16) {
 }
 
 func doSbc(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	a := c.aRegister.Read()
 	memory := c.ram.Read(*addr)
 	carryIn := c.statusRegister.Get(modules.CARRY)
@@ -167,7 +167,7 @@ func doSbc(c *Cpu, addr *uint16) {
 }
 
 func doAnd(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	a := c.aRegister.Read()
 
@@ -181,7 +181,7 @@ func doAnd(c *Cpu, addr *uint16) {
 }
 
 func doOra(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	a := c.aRegister.Read()
 
@@ -195,7 +195,7 @@ func doOra(c *Cpu, addr *uint16) {
 }
 
 func doEor(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	a := c.aRegister.Read()
 
@@ -210,12 +210,12 @@ func doEor(c *Cpu, addr *uint16) {
 
 func doAsl(c *Cpu, addr *uint16) {
 	if !c.op.IsCombineOperation() {
-		c.clock.Tick()
+		c.clock.Tock()
 	}
 	var data uint8
 	if addr != nil {
 		data = c.ram.Read(*addr)
-		c.clock.Tick()
+		c.clock.Tock()
 	} else {
 		data = c.aRegister.Read()
 	}
@@ -227,7 +227,7 @@ func doAsl(c *Cpu, addr *uint16) {
 	c.statusRegister.Change(modules.ZERO, result == 0)
 	c.statusRegister.Change(modules.CARRY, carryOut)
 	if addr != nil {
-		c.clock.Tick()
+		c.clock.Tock()
 		c.ram.Write(*addr, result)
 	} else {
 		c.aRegister.Write(result)
@@ -236,12 +236,12 @@ func doAsl(c *Cpu, addr *uint16) {
 
 func doLsr(c *Cpu, addr *uint16) {
 	if !c.op.IsCombineOperation() {
-		c.clock.Tick()
+		c.clock.Tock()
 	}
 	var data uint8
 	if addr != nil {
 		data = c.ram.Read(*addr)
-		c.clock.Tick()
+		c.clock.Tock()
 	} else {
 		data = c.aRegister.Read()
 	}
@@ -252,7 +252,7 @@ func doLsr(c *Cpu, addr *uint16) {
 	c.statusRegister.Change(modules.ZERO, result == 0)
 	c.statusRegister.Change(modules.CARRY, carryOut)
 	if addr != nil {
-		c.clock.Tick()
+		c.clock.Tock()
 		c.ram.Write(*addr, result)
 	} else {
 		c.aRegister.Write(result)
@@ -261,13 +261,13 @@ func doLsr(c *Cpu, addr *uint16) {
 
 func doRol(c *Cpu, addr *uint16) {
 	if !c.op.IsCombineOperation() {
-		c.clock.Tick()
+		c.clock.Tock()
 	}
 
 	var data uint8
 	if addr != nil {
 		data = c.ram.Read(*addr)
-		c.clock.Tick()
+		c.clock.Tock()
 	} else {
 
 		data = c.aRegister.Read()
@@ -287,7 +287,7 @@ func doRol(c *Cpu, addr *uint16) {
 	c.statusRegister.Change(modules.CARRY, carryOut)
 
 	if addr != nil {
-		c.clock.Tick()
+		c.clock.Tock()
 		c.ram.Write(*addr, result)
 	} else {
 		c.aRegister.Write(result)
@@ -296,14 +296,14 @@ func doRol(c *Cpu, addr *uint16) {
 
 func doRor(c *Cpu, addr *uint16) {
 	if !c.op.IsCombineOperation() {
-		c.clock.Tick()
+		c.clock.Tock()
 	}
 
 	var data uint8
 	if addr != nil {
 
 		data = c.ram.Read(*addr)
-		c.clock.Tick()
+		c.clock.Tock()
 	} else {
 
 		data = c.aRegister.Read()
@@ -323,7 +323,7 @@ func doRor(c *Cpu, addr *uint16) {
 	c.statusRegister.Change(modules.CARRY, carryOut)
 
 	if addr != nil {
-		c.clock.Tick()
+		c.clock.Tock()
 		c.ram.Write(*addr, result)
 	} else {
 		c.aRegister.Write(result)
@@ -333,7 +333,7 @@ func doRor(c *Cpu, addr *uint16) {
 func doBcc(c *Cpu, addr *uint16) {
 	carryIn := c.statusRegister.Get(modules.CARRY)
 	if !carryIn {
-		c.clock.Tick()
+		c.clock.Tock()
 		// maybe + 1 is required for pc
 		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
@@ -344,7 +344,7 @@ func doBcc(c *Cpu, addr *uint16) {
 		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			//c.clock.Tick()
+			//c.clock.Tock()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -356,7 +356,7 @@ func doBcs(c *Cpu, addr *uint16) {
 	carryIn := c.statusRegister.Get(modules.CARRY)
 
 	if carryIn {
-		c.clock.Tick()
+		c.clock.Tock()
 		// maybe + 1 is required for pc
 		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
@@ -366,7 +366,7 @@ func doBcs(c *Cpu, addr *uint16) {
 		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			//c.clock.Tick()
+			//c.clock.Tock()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -379,7 +379,7 @@ func doBeq(c *Cpu, addr *uint16) {
 	zeroIn := c.statusRegister.Get(modules.ZERO)
 
 	if zeroIn {
-		c.clock.Tick()
+		c.clock.Tock()
 		// maybe + 1 is required for pc
 		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
@@ -388,7 +388,7 @@ func doBeq(c *Cpu, addr *uint16) {
 		pc_low_int16 := int16(pc_low) + int16(relative)
 		carryOut := pc_low_int16 > 255
 		if carryOut {
-			//c.clock.Tick()
+			//c.clock.Tock()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -400,7 +400,7 @@ func doBne(c *Cpu, addr *uint16) {
 	zeroIn := c.statusRegister.Get(modules.ZERO)
 
 	if !zeroIn {
-		c.clock.Tick()
+		c.clock.Tock()
 		// maybe + 1 is required for pc
 		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
@@ -410,7 +410,7 @@ func doBne(c *Cpu, addr *uint16) {
 		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			//c.clock.Tick()
+			//c.clock.Tock()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -422,7 +422,7 @@ func doBvc(c *Cpu, addr *uint16) {
 	overflowIn := c.statusRegister.Get(modules.OVERFLOW)
 
 	if !overflowIn {
-		c.clock.Tick()
+		c.clock.Tock()
 		// maybe + 1 is required for pc
 		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
@@ -432,7 +432,7 @@ func doBvc(c *Cpu, addr *uint16) {
 		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			//c.clock.Tick()
+			//c.clock.Tock()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -443,7 +443,7 @@ func doBvs(c *Cpu, addr *uint16) {
 
 	overflowIn := c.statusRegister.Get(modules.OVERFLOW)
 	if overflowIn {
-		c.clock.Tick()
+		c.clock.Tock()
 		// maybe + 1 is required for pc
 		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
@@ -453,7 +453,7 @@ func doBvs(c *Cpu, addr *uint16) {
 		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			//c.clock.Tick()
+			//c.clock.Tock()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -465,7 +465,7 @@ func doBpl(c *Cpu, addr *uint16) {
 	negativeIn := c.statusRegister.Get(modules.NEGATIVE)
 
 	if !negativeIn {
-		c.clock.Tick()
+		c.clock.Tock()
 		// maybe + 1 is required for pc
 		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
@@ -475,7 +475,7 @@ func doBpl(c *Cpu, addr *uint16) {
 		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			//c.clock.Tick()
+			//c.clock.Tock()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -487,7 +487,7 @@ func doBmi(c *Cpu, addr *uint16) {
 	negativeIn := c.statusRegister.Get(modules.NEGATIVE)
 
 	if negativeIn {
-		c.clock.Tick()
+		c.clock.Tock()
 		// maybe + 1 is required for pc
 		relative := int8(*addr)
 		pc := c.programCounterRegister.Read()
@@ -497,7 +497,7 @@ func doBmi(c *Cpu, addr *uint16) {
 		carryOut := pc_low_int16 > 255
 
 		if carryOut {
-			//c.clock.Tick()
+			//c.clock.Tock()
 		}
 		target := (pc_high << 8) + uint16(pc_low_int16)
 		c.programCounterRegister.Write(target)
@@ -505,7 +505,7 @@ func doBmi(c *Cpu, addr *uint16) {
 }
 
 func doBit(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	a := c.aRegister.Read()
 
@@ -523,33 +523,33 @@ func doBit(c *Cpu, addr *uint16) {
 func doJmp(c *Cpu, addr *uint16) {
 	if false {
 		// call yield due to be generator
-		c.clock.Tick()
+		c.clock.Tock()
 	}
 	c.programCounterRegister.Write(*addr - 1)
 }
 
 func doJsr(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	data := c.programCounterRegister.Read()
 	low := uint8(data & 255)
 	high := uint8((data >> 8) & 255)
-	c.clock.Tick()
+	c.clock.Tock()
 	c.stack.Push(high)
-	c.clock.Tick()
+	c.clock.Tock()
 	c.stack.Push(low)
 	target := *addr - 1
 	c.programCounterRegister.Write(target)
 }
 
 func doRts(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
-	c.clock.Tick()
-	c.clock.Tick()
+	c.clock.Tock()
+	c.clock.Tock()
 	low_pc := c.stack.Pop()
-	c.clock.Tick()
+	c.clock.Tock()
 	high_pc := c.stack.Pop()
-	c.clock.Tick()
+	c.clock.Tock()
 	return_addr := (uint16(high_pc) << 8) + uint16(low_pc)
 	c.programCounterRegister.Write(return_addr)
 }
@@ -557,7 +557,7 @@ func doRts(c *Cpu, addr *uint16) {
 func doBrk(c *Cpu, addr *uint16) {
 	// TODO
 	// it is wrong to check i flag here
-	c.clock.Tick()
+	c.clock.Tock()
 
 	interrupt := c.statusRegister.Get(modules.INTERRUPT)
 
@@ -568,19 +568,19 @@ func doBrk(c *Cpu, addr *uint16) {
 
 		low := uint8(next_pc & 255)
 		high := uint8((next_pc >> 8) & 255)
-		c.clock.Tick()
+		c.clock.Tock()
 		c.stack.Push(high)
-		c.clock.Tick()
+		c.clock.Tock()
 		c.stack.Push(low)
 
-		c.clock.Tick()
+		c.clock.Tock()
 		c.stack.Push(c.statusRegister.Read())
 
 		c.statusRegister.Set(modules.INTERRUPT)
 
-		c.clock.Tick()
+		c.clock.Tock()
 		low_pc := c.ram.Read(uint16(0xFFFE))
-		c.clock.Tick()
+		c.clock.Tock()
 		high_pc := c.ram.Read(uint16(0xFFFF))
 
 		return_addr := (uint16(high_pc) << 8) + uint16(low_pc)
@@ -589,15 +589,15 @@ func doBrk(c *Cpu, addr *uint16) {
 }
 
 func doRti(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	c.programCounterRegister.Increment()
-	c.clock.Tick()
+	c.clock.Tock()
 
-	c.clock.Tick()
+	c.clock.Tock()
 	c.statusRegister.Write(uint8(c.stack.Pop()))
-	c.clock.Tick()
+	c.clock.Tock()
 	low_pc := c.stack.Pop()
-	c.clock.Tick()
+	c.clock.Tock()
 	high_pc := c.stack.Pop()
 	return_addr := (uint16(high_pc) << 8) + uint16(low_pc)
 
@@ -605,7 +605,7 @@ func doRti(c *Cpu, addr *uint16) {
 }
 
 func doCmp(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	a := c.aRegister.Read()
 
@@ -619,7 +619,7 @@ func doCmp(c *Cpu, addr *uint16) {
 }
 
 func doCpx(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	x := c.xRegister.Read()
 
@@ -633,7 +633,7 @@ func doCpx(c *Cpu, addr *uint16) {
 }
 
 func doCpy(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	y := c.yRegister.Read()
 
@@ -649,42 +649,42 @@ func doCpy(c *Cpu, addr *uint16) {
 
 func doInc(c *Cpu, addr *uint16) {
 	if !c.op.IsCombineOperation() {
-		c.clock.Tick()
+		c.clock.Tock()
 
 	}
 
 	memory := c.ram.Read(*addr)
 
-	c.clock.Tick()
+	c.clock.Tock()
 	result := (memory + 1) & 255
 	negative := result>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, result == 0)
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.ram.Write(*addr, result)
 }
 
 func doDec(c *Cpu, addr *uint16) {
 	if !c.op.IsCombineOperation() {
-		c.clock.Tick()
+		c.clock.Tock()
 	}
 
 	memory := c.ram.Read(*addr)
 
-	c.clock.Tick()
+	c.clock.Tock()
 	result := (memory - 1) & 255
 	negative := result>>7 == 1
 	c.statusRegister.Change(modules.NEGATIVE, negative)
 	c.statusRegister.Change(modules.ZERO, result == 0)
 
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.ram.Write(*addr, result)
 }
 
 func doInx(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	x := c.xRegister.Read()
 
@@ -696,7 +696,7 @@ func doInx(c *Cpu, addr *uint16) {
 }
 
 func doDex(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	x := c.xRegister.Read()
 
@@ -708,7 +708,7 @@ func doDex(c *Cpu, addr *uint16) {
 }
 
 func doIny(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	y := c.yRegister.Read()
 	result := (y + 1) & 255
 	c.yRegister.Write(result)
@@ -718,7 +718,7 @@ func doIny(c *Cpu, addr *uint16) {
 }
 
 func doDey(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	y := c.yRegister.Read()
 
@@ -730,50 +730,50 @@ func doDey(c *Cpu, addr *uint16) {
 }
 
 func doClc(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.statusRegister.Clear(modules.CARRY)
 }
 
 func doSec(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.statusRegister.Set(modules.CARRY)
 }
 
 func doCli(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.statusRegister.Clear(modules.INTERRUPT)
 }
 
 func doSei(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.statusRegister.Set(modules.INTERRUPT)
 }
 
 func doCld(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.statusRegister.Clear(modules.DECIMAL)
 }
 
 func doSed(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.statusRegister.Set(modules.DECIMAL)
 }
 
 func doClv(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.statusRegister.Clear(modules.OVERFLOW)
 }
 
 func doLda(c *Cpu, addr *uint16) {
 	if !c.op.IsCombineOperation() {
-		c.clock.Tick()
+		c.clock.Tock()
 	}
 
 	memory := c.ram.Read(*addr)
@@ -784,7 +784,7 @@ func doLda(c *Cpu, addr *uint16) {
 }
 
 func doLdx(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	memory := c.ram.Read(*addr)
 
@@ -795,7 +795,7 @@ func doLdx(c *Cpu, addr *uint16) {
 }
 
 func doLdy(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	memory := c.ram.Read(*addr)
 
@@ -806,7 +806,7 @@ func doLdy(c *Cpu, addr *uint16) {
 }
 
 func doSta(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	a := c.aRegister.Read()
 
@@ -814,14 +814,14 @@ func doSta(c *Cpu, addr *uint16) {
 }
 
 func doStx(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	x := c.xRegister.Read()
 
 	c.ram.Write(*addr, x)
 }
 
 func doSty(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	y := c.yRegister.Read()
 
 	c.ram.Write(*addr, y)
@@ -829,7 +829,7 @@ func doSty(c *Cpu, addr *uint16) {
 }
 
 func doTax(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	a := c.aRegister.Read()
 	c.xRegister.Write(a)
 	negative := a>>7 == 1
@@ -838,7 +838,7 @@ func doTax(c *Cpu, addr *uint16) {
 }
 
 func doTxa(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	x := c.xRegister.Read()
 	c.aRegister.Write(x)
 	negative := x>>7 == 1
@@ -847,7 +847,7 @@ func doTxa(c *Cpu, addr *uint16) {
 }
 
 func doTay(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	a := c.aRegister.Read()
 	c.yRegister.Write(a)
@@ -857,7 +857,7 @@ func doTay(c *Cpu, addr *uint16) {
 }
 
 func doTya(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	y := c.yRegister.Read()
 	c.aRegister.Write(y)
 	negative := y>>7 == 1
@@ -866,7 +866,7 @@ func doTya(c *Cpu, addr *uint16) {
 }
 
 func doTsx(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 
 	stackPointer := c.stack.GetStackPointer()
 	c.xRegister.Write(stackPointer)
@@ -876,23 +876,23 @@ func doTsx(c *Cpu, addr *uint16) {
 }
 
 func doTxs(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 	x := c.xRegister.Read()
 	c.stack.SetStackPointer(x)
 }
 
 func doPha(c *Cpu, addr *uint16) {
-	c.clock.Tick()
-	c.clock.Tick()
+	c.clock.Tock()
+	c.clock.Tock()
 
 	c.stack.Push(c.aRegister.Read())
 }
 
 func doPla(c *Cpu, addr *uint16) {
-	c.clock.Tick()
-	c.clock.Tick()
+	c.clock.Tock()
+	c.clock.Tock()
 
-	c.clock.Tick()
+	c.clock.Tock()
 	data := c.stack.Pop()
 	c.aRegister.Write(data)
 	negative := data>>7 == 1
@@ -901,23 +901,23 @@ func doPla(c *Cpu, addr *uint16) {
 }
 
 func doPhp(c *Cpu, addr *uint16) {
-	c.clock.Tick()
-	c.clock.Tick()
+	c.clock.Tock()
+	c.clock.Tock()
 
 	c.stack.Push(c.statusRegister.Read())
 }
 
 func doPlp(c *Cpu, addr *uint16) {
-	c.clock.Tick()
-	c.clock.Tick()
+	c.clock.Tock()
+	c.clock.Tock()
 
-	c.clock.Tick()
+	c.clock.Tock()
 	data := c.stack.Pop()
 	c.statusRegister.Write(data)
 }
 
 func doNop(c *Cpu, addr *uint16) {
-	c.clock.Tick()
+	c.clock.Tock()
 }
 
 // below is illegal opcode func definition
@@ -951,7 +951,7 @@ func doSax(c *Cpu, addr *uint16) {
 	a := c.aRegister.Read()
 	x := c.xRegister.Read()
 	result := a & x
-	c.clock.Tick()
+	c.clock.Tock()
 
 	c.ram.Write(*addr, result)
 }
