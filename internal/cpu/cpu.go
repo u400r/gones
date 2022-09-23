@@ -72,6 +72,15 @@ func (c *Cpu) Process() {
 
 }
 
+func (c *Cpu) Start() {
+	c.PowerUp()
+
+	for {
+		c.Process()
+
+	}
+}
+
 func (c *Cpu) printState(addr *uint16) {
 
 	first, second := c.mode.GetOperandBytes(c)
