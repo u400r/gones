@@ -1,17 +1,13 @@
 package cpu
 
 import (
-	"log"
-
 	"github.com/u400r/gones/internal/modules"
 )
 
 func (c *Cpu) processRst() {
 	c.statusRegister.Set(modules.INTERRUPT)
 	low_address := c.ram.Read(0xFFFC)
-	log.Print(low_address)
 	high_address := c.ram.Read(0xFFFD)
-	log.Print(high_address)
 	address := uint16(high_address)<<8 + uint16(low_address)
 	c.programCounterRegister.Write(address)
 }

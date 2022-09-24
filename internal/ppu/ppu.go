@@ -119,7 +119,6 @@ func (p *Ppu) Write(addr uint16, data uint8) {
 	case 0x7:
 		t := p.tRegister.Read()
 		p.ram.Write(t&0x3fff, data)
-		fmt.Printf("ppu addr write: %04X, data:%02X\n", t, data)
 		mode := p.ppuCtrlRegister.Get(modules.IncrementMode)
 		if mode {
 			p.tRegister.Increment32()
