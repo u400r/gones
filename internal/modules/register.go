@@ -65,26 +65,38 @@ func (r *Register[T]) Write(data T) {
 }
 
 func (r *Register[T]) Increment() {
+	r.m.Lock()
+	defer r.m.Unlock()
 	r.data += 1
 }
 
 func (r *Register[T]) Increment32() {
+	r.m.Lock()
+	defer r.m.Unlock()
 	r.data += 32
 }
 
 func (r *Register[T]) Decrement() {
+	r.m.Lock()
+	defer r.m.Unlock()
 	r.data -= 1
 }
 
 func (r *Register[T]) Get(nbit uint) bool {
+	r.m.RLock()
+	defer r.m.RUnlock()
 	return (r.data>>nbit)&0x1 == 0x1
 }
 
 func (r *Register[T]) Set(nbit uint) {
+	r.m.Lock()
+	defer r.m.Unlock()
 	r.data = r.data | 1<<nbit
 }
 
 func (r *Register[T]) Clear(nbit uint) {
+	r.m.Lock()
+	defer r.m.Unlock()
 	r.data = r.data & ^(1 << nbit)
 }
 
@@ -97,6 +109,8 @@ func (r *Register[T]) Change(nbit uint, flag bool) {
 }
 
 func (r *Register[T]) Left(carry bool) {
+	r.m.Lock()
+	defer r.m.Unlock()
 	var carryIn T
 	if carry {
 		carryIn = 1
@@ -107,6 +121,8 @@ func (r *Register[T]) Left(carry bool) {
 }
 
 func (r *Register[T]) Load(data T) {
+	r.m.Lock()
+	defer r.m.Unlock()
 	r.data = r.data | data
 }
 
