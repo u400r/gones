@@ -234,10 +234,6 @@ func (r *RelativeMode) GetModeString() string {
 	return "Relative"
 }
 
-func (r *RelativeMode) GetOperandFormattedString(c *Cpu) string {
-	return fmt.Sprintf("$%2v%2v", *r.secondByte, r.firstByte)
-}
-
 type IndirectMode struct {
 	Mode
 }
