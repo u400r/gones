@@ -43,7 +43,7 @@ func (c *CpuBus) Read(addr uint16) uint8 {
 	} else if 24575 < addr && addr < 32768 {
 		return c.extendedRam.Read(addr & 8191)
 	} else if 32767 < addr && addr < 49152 {
-		data := c.prgRomB.Read(addr & 16383)
+		data := c.prgRomA.Read(addr & 16383)
 		if c.debug {
 			fmt.Printf("prog  -> %04X %02X\n", addr&16383, data)
 		}
