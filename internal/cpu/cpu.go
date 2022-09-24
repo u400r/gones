@@ -1,7 +1,9 @@
 package cpu
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/u400r/gones/internal/bus"
 	"github.com/u400r/gones/internal/modules"
@@ -32,10 +34,12 @@ type Cpu struct {
 	op                 Operatable
 	mode               Addressing
 	debug              bool
+	step               bool
+	isExited           bool
 }
 
 func NewCpu(memory modules.Writable[uint8, uint16],
-	rst, nmi, irq *modules.BitSignal, clock *bus.Clock) *Cpu {
+	rst, nmi, irq *modules.BitSignal, clock *bus.Clock, debug bool, step bool) *Cpu {
 	c := &Cpu{
 		aRegister:              modules.NewRegister(uint8(0)),
 		bRegister:              modules.NewRegister(uint8(0)),
@@ -49,7 +53,8 @@ func NewCpu(memory modules.Writable[uint8, uint16],
 		rstIn:                  rst,
 		nmiIn:                  nmi,
 		irqIn:                  irq,
-		debug:                  true,
+		debug:                  debug,
+		step:                   step,
 	}
 	c.initDecoder()
 	return c
@@ -77,7 +82,9 @@ func (c *Cpu) Start() {
 
 	for {
 		c.Process()
-
+		if c.step {
+			bufio.NewScanner(os.Stdin).Scan()
+		}
 	}
 }
 

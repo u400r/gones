@@ -1,9 +1,11 @@
 package ppu
 
 import (
+	"bufio"
 	"fmt"
 	"image"
 	"image/color"
+	"os"
 
 	"github.com/u400r/gones/internal/bus"
 	"github.com/u400r/gones/internal/modules"
@@ -32,9 +34,11 @@ type Ppu struct {
 	x                   uint16
 	y                   uint16
 	image               *image.RGBA
+	debug               bool
+	step                bool
 }
 
-func NewPpu(memoryBus modules.Writable[uint8, uint16], nmiOut *modules.BitSignal, clock *bus.Clock) *Ppu {
+func NewPpu(memoryBus modules.Writable[uint8, uint16], nmiOut *modules.BitSignal, clock *bus.Clock, debug bool, step bool) *Ppu {
 	return &Ppu{
 		ram:               memoryBus,
 		nmiOut:            nmiOut,
@@ -59,6 +63,8 @@ func NewPpu(memoryBus modules.Writable[uint8, uint16], nmiOut *modules.BitSignal
 		x:                   0x0,
 		y:                   0x0,
 		image:               image.NewRGBA(image.Rect(0, 0, 255, 239)),
+		debug:               debug,
+		step:                step,
 	}
 
 }
@@ -244,7 +250,10 @@ func (p *Ppu) rendering() {
 	nesColor := ColorMap[palette[patternNumber]]
 	p.patternHighRegister.Left(false)
 	p.patternLowRegister.Left(false)
-	fmt.Println(x, y, attributeBit, palette, patternNumber, nesColor)
+	if p.debug {
+		fmt.Println(x, y, attributeBit, palette, patternNumber, nesColor, patternLow, patternHigh, fineX)
+
+	}
 	p.image.Set(int(x), int(y), color.RGBA{nesColor[0], nesColor[1], nesColor[2], 255})
 }
 
@@ -340,6 +349,10 @@ func (p *Ppu) process() {
 			p.incVramY()
 		}
 		p.incVramX()
+		if p.step {
+			bufio.NewScanner(os.Stdin).Scan()
+
+		}
 	}
 
 	if p.x == 257 {
@@ -349,6 +362,10 @@ func (p *Ppu) process() {
 		p.syncYVt()
 	}
 	p.tick()
+	if p.step {
+		bufio.NewScanner(os.Stdin).Scan()
+
+	}
 }
 
 func (p *Ppu) Start() {

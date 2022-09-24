@@ -1,6 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"flag"
+	"os"
+
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/u400r/gones/internal/bus"
@@ -11,6 +15,13 @@ import (
 )
 
 func run() {
+	nesFile := flag.String("nes-file", "", "")
+	cpuDebug := flag.Bool("cpu-debug", false, "")
+	ppuDebug := flag.Bool("ppu-debug", false, "")
+	stepCpu := flag.Bool("step-cpu", false, "")
+	stepPpu := flag.Bool("step-ppu", false, "")
+	stepFrame := flag.Bool("step-frame", false, "")
+	flag.Parse()
 	cfg := pixelgl.WindowConfig{
 		Title:  "Pixel Rocks!",
 		Bounds: pixel.R(0, 0, 256, 240),
@@ -20,8 +31,8 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-	fileName := "/home/ukawa/nestest.nes"
-	cartrige := ines.ParseInes(fileName)
+
+	cartrige := ines.ParseInes(*nesFile)
 	memoryPpuBus := bus.NewPpuBus(cartrige.ChrRam, cartrige.Mirroring)
 	rst := modules.NewBitSignal()
 	nmi := modules.NewBitSignal()
@@ -31,9 +42,9 @@ func run() {
 	irq.Off()
 	cpuClock := bus.NewClock()
 	ppuClock := bus.NewClock()
-	ppu := ppu.NewPpu(memoryPpuBus, nmi, ppuClock)
+	ppu := ppu.NewPpu(memoryPpuBus, nmi, ppuClock, *ppuDebug, *stepPpu)
 	memoryCpuBus := bus.NewCpuBus(cartrige.PrgRomA, cartrige.PrgRomB, ppu)
-	cpu := cpu.NewCpu(memoryCpuBus, rst, nmi, irq, cpuClock)
+	cpu := cpu.NewCpu(memoryCpuBus, rst, nmi, irq, cpuClock, *cpuDebug, *stepCpu)
 	go cpu.Start()
 	go ppu.Start()
 
@@ -46,6 +57,10 @@ func run() {
 				cpuClock.Tick()
 			}
 		}()
+		if *stepFrame {
+			bufio.NewScanner(os.Stdin).Scan()
+
+		}
 		ppuClock.Sync()
 		picture := pixel.PictureDataFromImage(ppu.GetImage())
 		// FIXME It may be wrong that draw background as sprite
