@@ -23,7 +23,7 @@ func ParseInes(fileName string) *cartridge.Cartridge {
 	fp.Read(romSize)
 	cartridge.PrgRomSize = uint16(romSize[0]) * 16384
 	fp.Read(romSize)
-	cartridge.ChrRomSize = uint16(romSize[0]) * 8192
+	cartridge.ChrRamSize = uint16(romSize[0]) * 8192
 
 	flag6 := make([]byte, 1)
 	fp.Read(flag6)
@@ -63,9 +63,9 @@ func ParseInes(fileName string) *cartridge.Cartridge {
 		cartridge.PrgRomB = cartridge.PrgRomA
 	}
 
-	chrRom := make([]byte, 8192)
-	fp.Read(chrRom)
-	cartridge.ChrRom = modules.NewMemoryWith[uint8, uint16](chrRom)
+	chrRam := make([]byte, 8192)
+	fp.Read(chrRam)
+	cartridge.ChrRam = modules.NewMemoryWith[uint8, uint16](chrRam)
 
 	return cartridge
 }

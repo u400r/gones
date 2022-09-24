@@ -13,16 +13,18 @@ type CpuBus struct {
 	prgRomA     modules.Readable[uint8, uint16]
 	prgRomB     modules.Readable[uint8, uint16]
 	debug       bool
+	ppu         modules.Writable[uint8, uint16]
 }
 
 func NewCpuBus(prgRomA modules.Readable[uint8, uint16],
-	prgRomB modules.Readable[uint8, uint16]) *CpuBus {
+	prgRomB modules.Readable[uint8, uint16], ppu modules.Writable[uint8, uint16]) *CpuBus {
 
 	return &CpuBus{
 		ram:         modules.NewMemory[uint8, uint16](2048),
 		extendedRam: modules.NewMemory[uint8, uint16](8192),
 		prgRomA:     prgRomA,
 		prgRomB:     prgRomB,
+		ppu:         ppu,
 		debug:       false,
 	}
 }
@@ -35,9 +37,9 @@ func (c *CpuBus) Read(addr uint16) uint8 {
 		}
 		return data
 	} else if 8191 < addr && addr < 16384 {
-		panic("not implemented")
+		return c.ppu.Read(addr)
 	} else if 16383 < addr && addr < 16416 {
-		panic("not implemented")
+		return 0x0
 	} else if 16415 < addr && addr < 24576 {
 		panic("not implemented")
 	} else if 24575 < addr && addr < 32768 {
@@ -65,8 +67,9 @@ func (c *CpuBus) Write(addr uint16, data uint8) {
 			fmt.Printf("write -> %04X %02X\n", addr&2047, data)
 		}
 		c.ram.Write(addr&2047, data)
-	} else if 8191 < addr && addr < 24576 {
-		panic("not implemented")
+	} else if 8191 < addr && addr < 16384 {
+		c.ppu.Write(addr, data)
+	} else if 16383 < addr && addr < 24576 {
 	} else if 24575 < addr && addr < 32768 {
 		c.extendedRam.Write(addr&8191, data)
 	} else {
