@@ -223,12 +223,13 @@ func (p *Ppu) fetchPalette(attributeBit uint8) [4]uint8 {
 }
 
 func (p *Ppu) rendering() {
-	if !(0 <= p.x && p.x < 256 && 0 <= p.y && p.y < 240) {
-		return
-	}
 
 	x := p.x
 	y := p.y
+	if !(0 <= p.x && p.x < 256 && 0 <= p.y && p.y < 240) {
+
+		return
+	}
 	patternLow := p.patternLowRegister.Read()
 	patternHigh := p.patternHighRegister.Read()
 	attribute := p.attributeRegister.Read()
@@ -306,9 +307,8 @@ func (p *Ppu) syncYVt() {
 }
 
 func (p *Ppu) tick() {
-	p.clock.Tock()
 	//fmt.Printf("X:%v Y:%v V:%v T:%v\n", p.x, p.y, p.vRegister.Read(), p.tRegister.Read())
-	p.rendering()
+
 	if p.x == 340 {
 		p.x = 0
 		if p.y == 261 {
@@ -320,6 +320,8 @@ func (p *Ppu) tick() {
 	} else {
 		p.x = p.x + 1
 	}
+	p.rendering()
+	p.clock.Tock()
 }
 
 func (p *Ppu) process() {
