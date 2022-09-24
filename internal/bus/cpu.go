@@ -39,9 +39,11 @@ func (c *CpuBus) Read(addr uint16) uint8 {
 	} else if 8191 < addr && addr < 16384 {
 		return c.ppu.Read(addr)
 	} else if 16383 < addr && addr < 16416 {
+		fmt.Printf("read from %04X not implemented\n", addr)
 		return 0x0
 	} else if 16415 < addr && addr < 24576 {
-		panic("not implemented")
+		fmt.Printf("read from %04X not implemented\n", addr)
+		return 0x0
 	} else if 24575 < addr && addr < 32768 {
 		return c.extendedRam.Read(addr & 8191)
 	} else if 32767 < addr && addr < 49152 {
@@ -70,6 +72,7 @@ func (c *CpuBus) Write(addr uint16, data uint8) {
 	} else if 8191 < addr && addr < 16384 {
 		c.ppu.Write(addr, data)
 	} else if 16383 < addr && addr < 24576 {
+		fmt.Printf("write to %04X not implemented\n", addr)
 	} else if 24575 < addr && addr < 32768 {
 		c.extendedRam.Write(addr&8191, data)
 	} else {

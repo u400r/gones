@@ -1,5 +1,7 @@
 package cpu
 
+import "fmt"
+
 type Decoded struct {
 	*Operation
 	Addressing
@@ -305,7 +307,7 @@ func (c *Cpu) decode() {
 	c.op = decoded.Operation
 	c.mode = decoded.Addressing
 	if c.op == nil || c.mode == nil {
-		panic("something went wrong")
+		panic(fmt.Sprintf("invalid opecode %v", c.instructionOpecode))
 	}
 
 }
