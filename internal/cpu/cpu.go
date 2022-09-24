@@ -22,9 +22,9 @@ type Cpu struct {
 
 	// outside component
 	ram   modules.Writable[uint8, uint16]
-	rstIn modules.BitSignal
-	nmiIn modules.BitSignal
-	irqIn modules.BitSignal
+	rstIn *modules.BitSignal
+	nmiIn *modules.BitSignal
+	irqIn *modules.BitSignal
 
 	// inner state
 	instructionAddress uint16
@@ -35,7 +35,7 @@ type Cpu struct {
 }
 
 func NewCpu(memory modules.Writable[uint8, uint16],
-	rst, nmi, irq modules.BitSignal, clock *bus.Clock) *Cpu {
+	rst, nmi, irq *modules.BitSignal, clock *bus.Clock) *Cpu {
 	c := &Cpu{
 		aRegister:              modules.NewRegister(uint8(0)),
 		bRegister:              modules.NewRegister(uint8(0)),

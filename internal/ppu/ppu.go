@@ -11,7 +11,7 @@ import (
 
 type Ppu struct {
 	ram               modules.Writable[uint8, uint16]
-	nmiOut            modules.BitSignal
+	nmiOut            *modules.BitSignal
 	ppuCtrlRegister   modules.Flag[uint8]
 	ppuMaskRegister   modules.Flag[uint8]
 	ppuStatusRegister modules.Flag[uint8]
@@ -34,7 +34,7 @@ type Ppu struct {
 	image               *image.RGBA
 }
 
-func NewPpu(memoryBus modules.Writable[uint8, uint16], nmiOut modules.BitSignal, clock *bus.Clock) *Ppu {
+func NewPpu(memoryBus modules.Writable[uint8, uint16], nmiOut *modules.BitSignal, clock *bus.Clock) *Ppu {
 	return &Ppu{
 		ram:               memoryBus,
 		nmiOut:            nmiOut,

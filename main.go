@@ -23,9 +23,9 @@ func run() {
 	fileName := "/home/ukawa/nestest.nes"
 	cartrige := ines.ParseInes(fileName)
 	memoryPpuBus := bus.NewPpuBus(cartrige.ChrRam, cartrige.Mirroring)
-	rst := modules.BitSignal{}
-	nmi := modules.BitSignal{}
-	irq := modules.BitSignal{}
+	rst := modules.NewBitSignal()
+	nmi := modules.NewBitSignal()
+	irq := modules.NewBitSignal()
 	rst.Off()
 	nmi.Off()
 	irq.Off()
