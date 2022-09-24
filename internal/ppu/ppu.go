@@ -27,8 +27,8 @@ type Ppu struct {
 	tRegister           modules.Counter[uint16]
 	fineXRegister       modules.WritableRegister[uint8]
 	w                   modules.BitSignal
-	patternLowRegister  modules.ShiftableRegister[uint16]
-	patternHighRegister modules.ShiftableRegister[uint16]
+	patternLowRegister  modules.ShiftableRegister[uint8]
+	patternHighRegister modules.ShiftableRegister[uint8]
 	attributeRegister   modules.WritableRegister[uint8]
 	clock               *bus.Clock
 	x                   uint16
@@ -56,8 +56,8 @@ func NewPpu(memoryBus modules.Writable[uint8, uint16], nmiOut *modules.BitSignal
 
 		w: modules.BitSignal{},
 
-		patternLowRegister:  modules.NewRegister[uint16](0x0),
-		patternHighRegister: modules.NewRegister[uint16](0x0),
+		patternLowRegister:  modules.NewRegister[uint8](0x0),
+		patternHighRegister: modules.NewRegister[uint8](0x0),
 		attributeRegister:   modules.NewRegister[uint8](0x0),
 		clock:               clock,
 		x:                   0x0,
@@ -342,8 +342,8 @@ func (p *Ppu) process() {
 		attribute := p.fetchAttributetable()
 		high, low := p.fetchPattern(name)
 
-		p.patternLowRegister.Load(uint16(low))
-		p.patternHighRegister.Load(uint16(high))
+		p.patternLowRegister.Load(low)
+		p.patternHighRegister.Load(high)
 		p.attributeRegister.Write(attribute)
 		if p.x == 256 {
 			p.incVramY()
