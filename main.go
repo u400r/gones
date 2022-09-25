@@ -8,6 +8,7 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"github.com/u400r/gones/internal/bus"
+	"github.com/u400r/gones/internal/controller"
 	"github.com/u400r/gones/internal/cpu"
 	"github.com/u400r/gones/internal/ines"
 	"github.com/u400r/gones/internal/modules"
@@ -42,8 +43,10 @@ func run() {
 	irq.Off()
 	cpuClock := modules.NewClock()
 	ppuClock := modules.NewClock()
+	controllerA := controller.NewController()
+	controllerB := controller.NewController()
 	ppu := ppu.NewPpu(memoryPpuBus, nmi, ppuClock, *ppuDebug, *stepPpu)
-	memoryCpuBus := bus.NewCpuBus(cartrige.PrgRomA, cartrige.PrgRomB, ppu, *cpuClock)
+	memoryCpuBus := bus.NewCpuBus(cartrige.PrgRomA, cartrige.PrgRomB, ppu, cpuClock, controllerA, controllerB)
 	cpu := cpu.NewCpu(memoryCpuBus, rst, nmi, irq, cpuClock, *cpuDebug, *stepCpu)
 	go cpu.Start()
 	go ppu.Start()
@@ -61,6 +64,14 @@ func run() {
 			bufio.NewScanner(os.Stdin).Scan()
 
 		}
+		controllerA.Toggle(controller.A, win.Pressed(pixelgl.KeyA))
+		controllerA.Toggle(controller.B, win.Pressed(pixelgl.KeyB))
+		controllerA.Toggle(controller.START, win.Pressed(pixelgl.KeyZ))
+		controllerA.Toggle(controller.SELECT, win.Pressed(pixelgl.KeyX))
+		controllerA.Toggle(controller.UP, win.Pressed(pixelgl.KeyUp))
+		controllerA.Toggle(controller.DOWN, win.Pressed(pixelgl.KeyDown))
+		controllerA.Toggle(controller.LEFT, win.Pressed(pixelgl.KeyLeft))
+		controllerA.Toggle(controller.RIGHT, win.Pressed(pixelgl.KeyRight))
 		ppuClock.Sync()
 		picture := pixel.PictureDataFromImage(ppu.GetImage())
 		// FIXME It may be wrong that draw background as sprite
