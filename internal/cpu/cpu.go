@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/u400r/gones/internal/bus"
 	"github.com/u400r/gones/internal/modules"
 )
 
@@ -20,7 +19,7 @@ type Cpu struct {
 	// stack
 	stack *modules.Stack[uint8, uint8, uint16]
 	// clock
-	clock *bus.Clock
+	clock *modules.Clock
 
 	// outside component
 	ram   modules.Writable[uint8, uint16]
@@ -39,7 +38,7 @@ type Cpu struct {
 }
 
 func NewCpu(memory modules.Writable[uint8, uint16],
-	rst, nmi, irq *modules.BitSignal, clock *bus.Clock, debug bool, step bool) *Cpu {
+	rst, nmi, irq *modules.BitSignal, clock *modules.Clock, debug bool, step bool) *Cpu {
 	c := &Cpu{
 		aRegister:              modules.NewRegister(uint8(0)),
 		bRegister:              modules.NewRegister(uint8(0)),

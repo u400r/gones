@@ -7,30 +7,28 @@ import (
 	"image/color"
 	"os"
 
-	"github.com/u400r/gones/internal/bus"
 	"github.com/u400r/gones/internal/modules"
 )
 
 type Ppu struct {
 	ram               modules.Writable[uint8, uint16]
+	oam               modules.Writable[uint8, uint16]
 	nmiOut            *modules.BitSignal
 	ppuCtrlRegister   modules.Flag[uint8]
 	ppuMaskRegister   modules.Flag[uint8]
 	ppuStatusRegister modules.Flag[uint8]
-	oamAddrRegister   modules.WritableRegister[uint8]
-	oamDataRegister   modules.WritableRegister[uint8]
-	oamDMARegister    modules.WritableRegister[uint8]
+	oamAddrRegister   modules.Counter[uint8]
 	ppuScrolRegister  modules.WritableRegister[uint8]
 	ppuAddrRegister   modules.WritableRegister[uint8]
 	// internal registers
 	vRegister           modules.Counter[uint16]
 	tRegister           modules.Counter[uint16]
 	fineXRegister       modules.WritableRegister[uint8]
-	w                   modules.BitSignal
+	w                   *modules.BitSignal
 	patternLowRegister  modules.ShiftableRegister[uint8]
 	patternHighRegister modules.ShiftableRegister[uint8]
 	attributeRegister   modules.WritableRegister[uint8]
-	clock               *bus.Clock
+	clock               *modules.Clock
 	x                   uint16
 	y                   uint16
 	image               *image.RGBA
@@ -38,9 +36,10 @@ type Ppu struct {
 	step                bool
 }
 
-func NewPpu(memoryBus modules.Writable[uint8, uint16], nmiOut *modules.BitSignal, clock *bus.Clock, debug bool, step bool) *Ppu {
+func NewPpu(memoryBus modules.Writable[uint8, uint16], nmiOut *modules.BitSignal, clock *modules.Clock, debug bool, step bool) *Ppu {
 	return &Ppu{
 		ram:               memoryBus,
+		oam:               modules.NewMemory[uint8, uint16](uint16(256)),
 		nmiOut:            nmiOut,
 		ppuCtrlRegister:   modules.NewRegister[uint8](0x0),
 		ppuMaskRegister:   modules.NewRegister[uint8](0x0),
@@ -48,13 +47,11 @@ func NewPpu(memoryBus modules.Writable[uint8, uint16], nmiOut *modules.BitSignal
 		ppuScrolRegister:  modules.NewRegister[uint8](0x0),
 		ppuAddrRegister:   modules.NewRegister[uint8](0x0),
 		oamAddrRegister:   modules.NewRegister[uint8](0x0),
-		oamDataRegister:   modules.NewRegister[uint8](0x0),
-		oamDMARegister:    modules.NewRegister[uint8](0x0),
 		vRegister:         modules.NewRegister[uint16](0x0),
 		tRegister:         modules.NewRegister[uint16](0x0),
 		fineXRegister:     modules.NewRegister[uint8](0x0),
 
-		w: modules.BitSignal{},
+		w: modules.NewBitSignal(),
 
 		patternLowRegister:  modules.NewRegister[uint8](0x0),
 		patternHighRegister: modules.NewRegister[uint8](0x0),
@@ -84,7 +81,12 @@ func (p *Ppu) Write(addr uint16, data uint8) {
 	case 0x3:
 		p.oamAddrRegister.Write(data)
 	case 0x4:
-		p.oamDataRegister.Write(data)
+		// not write in the prerender and visible scanline
+		if p.y > 239 && p.y == 261 {
+			a := p.oamAddrRegister.Read()
+			p.oam.Write(uint16(a), data)
+		}
+		p.oamAddrRegister.Increment()
 	case 0x5:
 		p.ppuScrolRegister.Write(data)
 		t := p.tRegister.Read()
@@ -141,7 +143,8 @@ func (p *Ppu) Read(addr uint16) uint8 {
 	case 0x3:
 		ret = p.oamAddrRegister.Read()
 	case 0x4:
-		ret = p.oamDataRegister.Read()
+		a := p.oamAddrRegister.Read()
+		ret = p.oam.Read(uint16(a))
 	case 0x5:
 		ret = p.ppuScrolRegister.Read()
 	case 0x6:
@@ -354,6 +357,9 @@ func (p *Ppu) process() {
 			bufio.NewScanner(os.Stdin).Scan()
 
 		}
+	}
+	if (256 < p.x && p.x < 321) && ((0 <= p.y && p.y < 240) || p.y == 261) {
+		p.oamAddrRegister.Write(0)
 	}
 
 	if p.x == 257 {

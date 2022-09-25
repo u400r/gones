@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/u400r/gones/internal/modules"
+	"github.com/u400r/gones/internal/ppu"
 )
 
 type CpuBus struct {
@@ -13,11 +14,12 @@ type CpuBus struct {
 	prgRomA     modules.Readable[uint8, uint16]
 	prgRomB     modules.Readable[uint8, uint16]
 	debug       bool
-	ppu         modules.Writable[uint8, uint16]
+	ppu         *ppu.Ppu
+	cpuClock    *modules.Clock
 }
 
 func NewCpuBus(prgRomA modules.Readable[uint8, uint16],
-	prgRomB modules.Readable[uint8, uint16], ppu modules.Writable[uint8, uint16]) *CpuBus {
+	prgRomB modules.Readable[uint8, uint16], ppu *ppu.Ppu, cpuClock modules.Clock) *CpuBus {
 
 	return &CpuBus{
 		ram:         modules.NewMemory[uint8, uint16](2048),
@@ -26,6 +28,7 @@ func NewCpuBus(prgRomA modules.Readable[uint8, uint16],
 		prgRomB:     prgRomB,
 		ppu:         ppu,
 		debug:       false,
+		cpuClock:    &cpuClock,
 	}
 }
 
@@ -71,7 +74,22 @@ func (c *CpuBus) Write(addr uint16, data uint8) {
 		c.ram.Write(addr&0x7FF, data)
 	} else if 0x1FFF < addr && addr < 0x4000 {
 		c.ppu.Write(addr, data)
-	} else if 0x3FFF < addr && addr < 0x6000 {
+	} else if addr == 0x4014 {
+		// start address from cpu ram
+		startAddr := uint16(data) << 8
+		endAddr := startAddr | 0xFF
+		c.cpuClock.Tock()
+		// start address to oam
+		for addr := startAddr; startAddr <= endAddr; addr += 0x1 {
+			d := c.Read(addr)
+			c.cpuClock.Tock()
+			c.ppu.Write(0x2004, d)
+			c.cpuClock.Tock()
+		}
+		if c.cpuClock.Cycles&1 == 1 {
+			c.cpuClock.Tock()
+		}
+	} else if 0x3FFF < addr && addr < 0x6000 && addr != 0x4014 {
 		fmt.Printf("write to %04X not implemented\n", addr)
 	} else if 0x5FFF < addr && addr < 0x8000 {
 		c.extendedRam.Write(addr&0x1FFF, data)
