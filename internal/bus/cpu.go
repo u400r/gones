@@ -30,32 +30,32 @@ func NewCpuBus(prgRomA modules.Readable[uint8, uint16],
 }
 
 func (c *CpuBus) Read(addr uint16) uint8 {
-	if addr < 8192 {
-		data := c.ram.Read(addr & 2047)
+	if addr < 0x2000 {
+		data := c.ram.Read(addr & 0x7FF)
 		if c.debug {
-			fmt.Printf("read  -> %04X %02X\n", addr&2047, data)
+			fmt.Printf("read  -> %04X %02X\n", addr&0x7FF, data)
 		}
 		return data
-	} else if 8191 < addr && addr < 16384 {
+	} else if 0x1FFF < addr && addr < 0x4000 {
 		return c.ppu.Read(addr)
-	} else if 16383 < addr && addr < 16416 {
+	} else if 0x3FFF < addr && addr < 0x4020 {
 		fmt.Printf("read from %04X not implemented\n", addr)
 		return 0x0
-	} else if 16415 < addr && addr < 24576 {
+	} else if 0x401F < addr && addr < 0x6000 {
 		fmt.Printf("read from %04X not implemented\n", addr)
 		return 0x0
-	} else if 24575 < addr && addr < 32768 {
-		return c.extendedRam.Read(addr & 8191)
-	} else if 32767 < addr && addr < 49152 {
-		data := c.prgRomA.Read(addr & 16383)
+	} else if 0x5FFF < addr && addr < 0x8000 {
+		return c.extendedRam.Read(addr & 0x1FFF)
+	} else if 0x7FFF < addr && addr < 0xC000 {
+		data := c.prgRomA.Read(addr & 0x3FFF)
 		if c.debug {
-			fmt.Printf("prog  -> %04X %02X\n", addr&16383, data)
+			fmt.Printf("prog  -> %04X %02X\n", addr&0x3FFF, data)
 		}
 		return data
-	} else if 40151 < addr && addr <= 65535 {
-		data := c.prgRomB.Read(addr & 16383)
+	} else if 0xBFFF < addr && addr <= 0xFFFF {
+		data := c.prgRomB.Read(addr & 0x3FFF)
 		if c.debug {
-			fmt.Printf("prog  -> %04X %02X\n", addr&16383, data)
+			fmt.Printf("prog  -> %04X %02X\n", addr&0x3FFF, data)
 		}
 		return data
 	} else {
@@ -64,17 +64,17 @@ func (c *CpuBus) Read(addr uint16) uint8 {
 }
 
 func (c *CpuBus) Write(addr uint16, data uint8) {
-	if addr < 8192 {
+	if addr < 0x2000 {
 		if c.debug {
-			fmt.Printf("write -> %04X %02X\n", addr&2047, data)
+			fmt.Printf("write -> %04X %02X\n", addr&0x7FF, data)
 		}
-		c.ram.Write(addr&2047, data)
-	} else if 8191 < addr && addr < 16384 {
+		c.ram.Write(addr&0x7FF, data)
+	} else if 0x1FFF < addr && addr < 0x4000 {
 		c.ppu.Write(addr, data)
-	} else if 16383 < addr && addr < 24576 {
+	} else if 0x3FFF < addr && addr < 0x6000 {
 		fmt.Printf("write to %04X not implemented\n", addr)
-	} else if 24575 < addr && addr < 32768 {
-		c.extendedRam.Write(addr&8191, data)
+	} else if 0x5FFF < addr && addr < 0x8000 {
+		c.extendedRam.Write(addr&0x1FFF, data)
 	} else {
 		panic("not implemented")
 	}
